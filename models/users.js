@@ -1,39 +1,25 @@
-/*
- * Business schema and data accessor methods;
- */
-
 const mysqlPool = require('../lib/mysqlPool');
 const { extractValidFields } = require('../lib/validation');
-const { getReviewsByBusinessId } = require('./review');
-const { getPhotosByBusinessId } = require('./photo');
 
 /*
- * Schema describing required/optional fields of a business object.
+ * Schema describing required/optional fields of a User object.
  */
-const BusinessSchema = {
+const UserSchema = {
   name: { required: true },
-  address: { required: true },
-  city: { required: true },
-  state: { required: true },
-  zip: { required: true },
-  phone: { required: true },
-  category: { required: true },
-  subcategory: { required: true },
-  website: { required: false },
-  email: { required: false },
-  ownerid: { required: true }
+  address: { required: true }
+  //fill in the rest
 };
-exports.BusinessSchema = BusinessSchema;
+exports.UserSchema = UserSchema;
 
 
 /*
- * Executes a MySQL query to fetch the total number of businesses.  Returns
+ * Executes a MySQL query to fetch the total number of Users.  Returns
  * a Promise that resolves to this count.
  */
-function getBusinessesCount() {
+function getUsersCount() {
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'SELECT COUNT(*) AS count FROM businesses',
+      'SELECT COUNT(*) AS count FROM Users',
       (err, results) => {
         if (err) {
           reject(err);
@@ -46,16 +32,16 @@ function getBusinessesCount() {
 }
 
 /*
- * Executes a MySQL query to return a single page of businesses.  Returns a
- * Promise that resolves to an array containing the fetched page of businesses.
+ * Executes a MySQL query to return a single page of Users.  Returns a
+ * Promise that resolves to an array containing the fetched page of Users.
  */
-function getBusinessesPage(page) {
+function getUsersPage(page) {
   return new Promise(async (resolve, reject) => {
     /*
      * Compute last page number and make sure page is within allowed bounds.
      * Compute offset into collection.
      */
-     const count = await getBusinessesCount();
+     const count = await getUsersCount();
      const pageSize = 10;
      const lastPage = Math.ceil(count / pageSize);
      page = page > lastPage ? lastPage : page;
@@ -63,14 +49,14 @@ function getBusinessesPage(page) {
      const offset = (page - 1) * pageSize;
 
     mysqlPool.query(
-      'SELECT * FROM businesses ORDER BY id LIMIT ?,?',
+      'SELECT * FROM Users ORDER BY id LIMIT ?,?',
       [ offset, pageSize ],
       (err, results) => {
         if (err) {
           reject(err);
         } else {
           resolve({
-            businesses: results,
+            Users: results,
             page: page,
             totalPages: lastPage,
             pageSize: pageSize,
@@ -81,19 +67,19 @@ function getBusinessesPage(page) {
     );
   });
 }
-exports.getBusinessesPage = getBusinessesPage;
+exports.getUsersPage = getUsersPage;
 
 /*
- * Executes a MySQL query to insert a new business into the database.  Returns
- * a Promise that resolves to the ID of the newly-created business entry.
+ * Executes a MySQL query to insert a new User into the database.  Returns
+ * a Promise that resolves to the ID of the newly-created User entry.
  */
-function insertNewBusiness(business) {
+function insertNewUser(User) {
   return new Promise((resolve, reject) => {
-    business = extractValidFields(business, BusinessSchema);
-    business.id = null;
+    User = extractValidFields(User, UserSchema);
+    User.id = null;
     mysqlPool.query(
-      'INSERT INTO businesses SET ?',
-      business,
+      'INSERT INTO Users SET ?',
+      User,
       (err, result) => {
         if (err) {
           reject(err);
@@ -104,19 +90,19 @@ function insertNewBusiness(business) {
     );
   });
 }
-exports.insertNewBusiness = insertNewBusiness;
+exports.insertNewUser = insertNewUser;
 
 /*
  * Executes a MySQL query to fetch information about a single specified
- * business based on its ID.  Does not fetch photo and review data for the
- * business.  Returns a Promise that resolves to an object containing
- * information about the requested business.  If no business with the
+ * User based on its ID.  Does not fetch photo and review data for the
+ * User.  Returns a Promise that resolves to an object containing
+ * information about the requested User.  If no User with the
  * specified ID exists, the returned Promise will resolve to null.
  */
-function getBusinessById(id) {
+function getUserById(id) {
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'SELECT * FROM businesses WHERE id = ?',
+      'SELECT * FROM Users WHERE id = ?',
       [ id ],
       (err, results) => {
         if (err) {
@@ -131,36 +117,36 @@ function getBusinessById(id) {
 
 /*
  * Executes a MySQL query to fetch detailed information about a single
- * specified business based on its ID, including photo and review data for
- * the business.  Returns a Promise that resolves to an object containing
- * information about the requested business.  If no business with the
+ * specified User based on its ID, including photo and review data for
+ * the User.  Returns a Promise that resolves to an object containing
+ * information about the requested User.  If no User with the
  * specified ID exists, the returned Promise will resolve to null.
  */
-async function getBusinessDetailsById(id) {
+async function getUserDetailsById(id) {
   /*
    * Execute three sequential queries to get all of the info about the
-   * specified business, including its reviews and photos.
+   * specified User, including its reviews and photos.
    */
-  const business = await getBusinessById(id);
-  if (business) {
-    business.reviews = await getReviewsByBusinessId(id);
-    business.photos = await getPhotosByBusinessId(id);
+  const User = await getUserById(id);
+  if (User) {
+    User.reviews = await getReviewsByUserId(id);
+    User.photos = await getPhotosByUserId(id);
   }
-  return business;
+  return User;
 }
-exports.getBusinessDetailsById = getBusinessDetailsById;
+exports.getUserDetailsById = getUserDetailsById;
 
 /*
- * Executes a MySQL query to replace a specified business with new data.
- * Returns a Promise that resolves to true if the business specified by
+ * Executes a MySQL query to replace a specified User with new data.
+ * Returns a Promise that resolves to true if the User specified by
  * `id` existed and was successfully updated or to false otherwise.
  */
-function replaceBusinessById(id, business) {
+function replaceUserById(id, User) {
   return new Promise((resolve, reject) => {
-    business = extractValidFields(business, BusinessSchema);
+    User = extractValidFields(User, UserSchema);
     mysqlPool.query(
-      'UPDATE businesses SET ? WHERE id = ?',
-      [ business, id ],
+      'UPDATE Users SET ? WHERE id = ?',
+      [ User, id ],
       (err, result) => {
         if (err) {
           reject(err);
@@ -171,17 +157,17 @@ function replaceBusinessById(id, business) {
     );
   });
 }
-exports.replaceBusinessById = replaceBusinessById;
+exports.replaceUserById = replaceUserById;
 
 /*
- * Executes a MySQL query to delete a business specified by its ID.  Returns
- * a Promise that resolves to true if the business specified by `id` existed
+ * Executes a MySQL query to delete a User specified by its ID.  Returns
+ * a Promise that resolves to true if the User specified by `id` existed
  * and was successfully deleted or to false otherwise.
  */
-function deleteBusinessById(id) {
+function deleteUserById(id) {
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'DELETE FROM businesses WHERE id = ?',
+      'DELETE FROM Users WHERE id = ?',
       [ id ],
       (err, result) => {
         if (err) {
@@ -193,19 +179,19 @@ function deleteBusinessById(id) {
     );
   });
 }
-exports.deleteBusinessById = deleteBusinessById;
+exports.deleteUserById = deleteUserById;
 
 /*
- * Executes a MySQL query to fetch all businesses owned by a specified user,
- * based on on the user's ID.  Returns a Promise that resolves to an array
- * containing the requested businesses.  This array could be empty if the
- * specified user does not own any businesses.  This function does not verify
- * that the specified user ID corresponds to a valid user.
+ * Executes a MySQL query to fetch all Users owned by a specified User,
+ * based on on the User's ID.  Returns a Promise that resolves to an array
+ * containing the requested Users.  This array could be empty if the
+ * specified User does not own any Users.  This function does not verify
+ * that the specified User ID corresponds to a valid User.
  */
-function getBusinessesByOwnerId(id) {
+function getUsersByOwnerId(id) {
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'SELECT * FROM businesses WHERE ownerid = ?',
+      'SELECT * FROM Users WHERE ownerid = ?',
       [ id ],
       (err, results) => {
         if (err) {
@@ -217,4 +203,4 @@ function getBusinessesByOwnerId(id) {
     );
   });
 }
-exports.getBusinessesByOwnerId = getBusinessesByOwnerId;
+exports.getUsersByOwnerId = getUsersByOwnerId;

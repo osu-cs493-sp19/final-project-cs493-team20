@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const { generateAuthToken, requireAuthentication } = require('../lib/auth');
 const { validateAgainstSchema } = require('../lib/validation');
-
+const { function1, function2} = require('../models/courses');
 
 
 /*

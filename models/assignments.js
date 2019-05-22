@@ -1,39 +1,26 @@
-/*
- * Business schema and data accessor methods;
- */
-
 const mysqlPool = require('../lib/mysqlPool');
 const { extractValidFields } = require('../lib/validation');
-const { getReviewsByBusinessId } = require('./review');
-const { getPhotosByBusinessId } = require('./photo');
+
 
 /*
- * Schema describing required/optional fields of a business object.
+ * Schema describing required/optional fields of a Assignment object.
  */
-const BusinessSchema = {
+const AssignmentSchema = {
   name: { required: true },
   address: { required: true },
-  city: { required: true },
-  state: { required: true },
-  zip: { required: true },
-  phone: { required: true },
-  category: { required: true },
-  subcategory: { required: true },
-  website: { required: false },
-  email: { required: false },
-  ownerid: { required: true }
+  //fill in the rest
 };
-exports.BusinessSchema = BusinessSchema;
+exports.AssignmentSchema = AssignmentSchema;
 
 
 /*
- * Executes a MySQL query to fetch the total number of businesses.  Returns
+ * Executes a MySQL query to fetch the total number of Assignments.  Returns
  * a Promise that resolves to this count.
  */
-function getBusinessesCount() {
+function getAssignmentsCount() {
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'SELECT COUNT(*) AS count FROM businesses',
+      'SELECT COUNT(*) AS count FROM Assignments',
       (err, results) => {
         if (err) {
           reject(err);
@@ -46,16 +33,16 @@ function getBusinessesCount() {
 }
 
 /*
- * Executes a MySQL query to return a single page of businesses.  Returns a
- * Promise that resolves to an array containing the fetched page of businesses.
+ * Executes a MySQL query to return a single page of Assignments.  Returns a
+ * Promise that resolves to an array containing the fetched page of Assignments.
  */
-function getBusinessesPage(page) {
+function getAssignmentsPage(page) {
   return new Promise(async (resolve, reject) => {
     /*
      * Compute last page number and make sure page is within allowed bounds.
      * Compute offset into collection.
      */
-     const count = await getBusinessesCount();
+     const count = await getAssignmentsCount();
      const pageSize = 10;
      const lastPage = Math.ceil(count / pageSize);
      page = page > lastPage ? lastPage : page;
@@ -63,14 +50,14 @@ function getBusinessesPage(page) {
      const offset = (page - 1) * pageSize;
 
     mysqlPool.query(
-      'SELECT * FROM businesses ORDER BY id LIMIT ?,?',
+      'SELECT * FROM Assignments ORDER BY id LIMIT ?,?',
       [ offset, pageSize ],
       (err, results) => {
         if (err) {
           reject(err);
         } else {
           resolve({
-            businesses: results,
+            Assignments: results,
             page: page,
             totalPages: lastPage,
             pageSize: pageSize,
@@ -81,19 +68,19 @@ function getBusinessesPage(page) {
     );
   });
 }
-exports.getBusinessesPage = getBusinessesPage;
+exports.getAssignmentsPage = getAssignmentsPage;
 
 /*
- * Executes a MySQL query to insert a new business into the database.  Returns
- * a Promise that resolves to the ID of the newly-created business entry.
+ * Executes a MySQL query to insert a new Assignment into the database.  Returns
+ * a Promise that resolves to the ID of the newly-created Assignment entry.
  */
-function insertNewBusiness(business) {
+function insertNewAssignment(Assignment) {
   return new Promise((resolve, reject) => {
-    business = extractValidFields(business, BusinessSchema);
-    business.id = null;
+    Assignment = extractValidFields(Assignment, AssignmentSchema);
+    Assignment.id = null;
     mysqlPool.query(
-      'INSERT INTO businesses SET ?',
-      business,
+      'INSERT INTO Assignments SET ?',
+      Assignment,
       (err, result) => {
         if (err) {
           reject(err);
@@ -104,19 +91,19 @@ function insertNewBusiness(business) {
     );
   });
 }
-exports.insertNewBusiness = insertNewBusiness;
+exports.insertNewAssignment = insertNewAssignment;
 
 /*
  * Executes a MySQL query to fetch information about a single specified
- * business based on its ID.  Does not fetch photo and review data for the
- * business.  Returns a Promise that resolves to an object containing
- * information about the requested business.  If no business with the
+ * Assignment based on its ID.  Does not fetch photo and review data for the
+ * Assignment.  Returns a Promise that resolves to an object containing
+ * information about the requested Assignment.  If no Assignment with the
  * specified ID exists, the returned Promise will resolve to null.
  */
-function getBusinessById(id) {
+function getAssignmentById(id) {
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'SELECT * FROM businesses WHERE id = ?',
+      'SELECT * FROM Assignments WHERE id = ?',
       [ id ],
       (err, results) => {
         if (err) {
@@ -131,36 +118,36 @@ function getBusinessById(id) {
 
 /*
  * Executes a MySQL query to fetch detailed information about a single
- * specified business based on its ID, including photo and review data for
- * the business.  Returns a Promise that resolves to an object containing
- * information about the requested business.  If no business with the
+ * specified Assignment based on its ID, including photo and review data for
+ * the Assignment.  Returns a Promise that resolves to an object containing
+ * information about the requested Assignment.  If no Assignment with the
  * specified ID exists, the returned Promise will resolve to null.
  */
-async function getBusinessDetailsById(id) {
+async function getAssignmentDetailsById(id) {
   /*
    * Execute three sequential queries to get all of the info about the
-   * specified business, including its reviews and photos.
+   * specified Assignment, including its reviews and photos.
    */
-  const business = await getBusinessById(id);
-  if (business) {
-    business.reviews = await getReviewsByBusinessId(id);
-    business.photos = await getPhotosByBusinessId(id);
+  const Assignment = await getAssignmentById(id);
+  if (Assignment) {
+    Assignment.reviews = await getReviewsByAssignmentId(id);
+    Assignment.photos = await getPhotosByAssignmentId(id);
   }
-  return business;
+  return Assignment;
 }
-exports.getBusinessDetailsById = getBusinessDetailsById;
+exports.getAssignmentDetailsById = getAssignmentDetailsById;
 
 /*
- * Executes a MySQL query to replace a specified business with new data.
- * Returns a Promise that resolves to true if the business specified by
+ * Executes a MySQL query to replace a specified Assignment with new data.
+ * Returns a Promise that resolves to true if the Assignment specified by
  * `id` existed and was successfully updated or to false otherwise.
  */
-function replaceBusinessById(id, business) {
+function replaceAssignmentById(id, Assignment) {
   return new Promise((resolve, reject) => {
-    business = extractValidFields(business, BusinessSchema);
+    Assignment = extractValidFields(Assignment, AssignmentSchema);
     mysqlPool.query(
-      'UPDATE businesses SET ? WHERE id = ?',
-      [ business, id ],
+      'UPDATE Assignments SET ? WHERE id = ?',
+      [ Assignment, id ],
       (err, result) => {
         if (err) {
           reject(err);
@@ -171,17 +158,17 @@ function replaceBusinessById(id, business) {
     );
   });
 }
-exports.replaceBusinessById = replaceBusinessById;
+exports.replaceAssignmentById = replaceAssignmentById;
 
 /*
- * Executes a MySQL query to delete a business specified by its ID.  Returns
- * a Promise that resolves to true if the business specified by `id` existed
+ * Executes a MySQL query to delete a Assignment specified by its ID.  Returns
+ * a Promise that resolves to true if the Assignment specified by `id` existed
  * and was successfully deleted or to false otherwise.
  */
-function deleteBusinessById(id) {
+function deleteAssignmentById(id) {
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'DELETE FROM businesses WHERE id = ?',
+      'DELETE FROM Assignments WHERE id = ?',
       [ id ],
       (err, result) => {
         if (err) {
@@ -193,19 +180,19 @@ function deleteBusinessById(id) {
     );
   });
 }
-exports.deleteBusinessById = deleteBusinessById;
+exports.deleteAssignmentById = deleteAssignmentById;
 
 /*
- * Executes a MySQL query to fetch all businesses owned by a specified user,
+ * Executes a MySQL query to fetch all Assignments owned by a specified user,
  * based on on the user's ID.  Returns a Promise that resolves to an array
- * containing the requested businesses.  This array could be empty if the
- * specified user does not own any businesses.  This function does not verify
+ * containing the requested Assignments.  This array could be empty if the
+ * specified user does not own any Assignments.  This function does not verify
  * that the specified user ID corresponds to a valid user.
  */
-function getBusinessesByOwnerId(id) {
+function getAssignmentsByOwnerId(id) {
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'SELECT * FROM businesses WHERE ownerid = ?',
+      'SELECT * FROM Assignments WHERE ownerid = ?',
       [ id ],
       (err, results) => {
         if (err) {
@@ -217,4 +204,4 @@ function getBusinessesByOwnerId(id) {
     );
   });
 }
-exports.getBusinessesByOwnerId = getBusinessesByOwnerId;
+exports.getAssignmentsByOwnerId = getAssignmentsByOwnerId;
