@@ -1,0 +1,27 @@
+ description: >
+        An object representing information about a specific course.
+      type: object
+      properties:
+        subject:
+          type: string
+          description: Short subject code.
+          example: CS
+        number:
+          type: string
+          description: Course number.
+          example: 493
+        title:
+          type: string
+          description: Course title.
+          example: Cloud Application Development
+        term:
+          type: string
+          description: Academic term in which Course is offered.
+          example: sp19
+        instructorId:
+          oneOf:
+            - type: integer
+            - type: string
+          description: >
+            ID for Course instructor.  Exact type/format will depend on your implementation but will likely be either an integer or a string.  This ID must correspond to a User with the 'instructor' role.
+          example: "123"

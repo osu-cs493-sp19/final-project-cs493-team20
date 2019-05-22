@@ -1,159 +1,81 @@
-/*
- * API sub-router for businesses collection endpoints.
- */
-
 const router = require('express').Router();
 const { generateAuthToken, requireAuthentication } = require('../lib/auth');
 
 const { validateAgainstSchema } = require('../lib/validation');
-const {
-  BusinessSchema,
-  getBusinessesPage,
-  insertNewBusiness,
-  getBusinessDetailsById,
-  replaceBusinessById,
-  deleteBusinessById,
-  getBusinessesByOwnerdId
-} = require('../models/business');
+
+
 
 /*
- * Route to return a paginated list of businesses.
- */
-router.get('/', async (req, res) => {
-  try {
-    /*
-     * Fetch page info, generate HATEOAS links for surrounding pages and then
-     * send response.
-     */
-    const businessPage = await getBusinessesPage(parseInt(req.query.page) || 1);
-    businessPage.links = {};
-    if (businessPage.page < businessPage.totalPages) {
-      businessPage.links.nextPage = `/businesses?page=${businessPage.page + 1}`;
-      businessPage.links.lastPage = `/businesses?page=${businessPage.totalPages}`;
-    }
-    if (businessPage.page > 1) {
-      businessPage.links.prevPage = `/businesses?page=${businessPage.page - 1}`;
-      businessPage.links.firstPage = '/businesses?page=1';
-    }
-    res.status(200).send(businessPage);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send({
-      error: "Error fetching businesses list.  Please try again later."
-    });
-  }
-});
-
-/*
- * Route to create a new business.
+ * Create a new Assignment.
+ *
+ * Create and store a new Assignment with specified data and adds it to the application's database.  Only an authenticated User 
+ * with 'admin' role or an authenticated 'instructor' User whose ID matches the `instructorId` of the Course corresponding to the Assignment's `courseId` can create an Assignment.
  */
 router.post('/', requireAuthentication, async (req, res) => {
-  if (req.params.id === req.user) {
-    if (validateAgainstSchema(req.body, BusinessSchema)) {
-      try {
-        const id = await insertNewBusiness(req.body);
-        res.status(201).send({
-          id: id,
-          links: {
-            business: `/businesses/${id}`
-          }
-        });
-      } catch (err) {
-        console.error(err);
-        res.status(500).send({
-          error: "Error inserting business into DB.  Please try again later."
-        });
-      }
-    } else {
-      res.status(400).send({
-        error: "Request body is not a valid business object."
-      });
-    }
-} else {
-  res.status(403).send({
-    error: "Unauthorized to access the specified resource"
-  });
-}
+  
 });
 
+
 /*
- * Route to fetch info about a specific business.
+ * Fetch data about a specific Assignment.
+ *
+ *  Returns summary data about the Assignment, excluding the list of Submissions.
  */
-router.get('/:id', async (req, res, next) => {
-  try {
-    const business = await getBusinessDetailsById(parseInt(req.params.id));
-    if (business) {
-      res.status(200).send(business);
-    } else {
-      next();
-    }
-  } catch (err) {
-    console.error(err);
-    res.status(500).send({
-      error: "Unable to fetch business.  Please try again later."
-    });
-  }
+router.get('/:id', async (req, res) => {
+  
 });
+
+
+//We have not worked with a patch request before so I commented this out. I'm not sure if we should create this or not.
+//router.patch('/:id', async (req, res) => {
+//});
+
+
+/*
+ * Remove a specific Assignment from the database.
+ *
+ *  Completely removes the data for the specified Assignment, including all submissions.  Only an authenticated User with 'admin' role or an authenticated
+ *  'instructor' User whose ID matches the `instructorId` of the Course corresponding to the Assignment's `courseId` can delete an Assignment.
+ */
+router.delete('/:id', requireAuthentication, async (req, res, next) => {
+  
+});
+
+
+/*
+ * Fetch the list of all Submissions for an Assignment.
+ *
+ *  Returns the list of all Submissions for an Assignment.  This list should be paginated.  Only an authenticated User with 'admin' role or an authenticated
+ *  'instructor' User whose ID matches the `instructorId` of the Course corresponding to the Assignment's `courseId` can fetch the Submissions for an Assignment.
+ */
+router.get('/:id/submissions', async (req, res, next) => {
+  
+});
+
+
+/*
+ * Create a new Submission for an Assignment.
+ *
+ *  Create and store a new Assignment with specified data and adds it to the application's database.  Only an authenticated User with 'student' role 
+ *  who is enrolled in the Course corresponding to the Assignment's `courseId` can create a Submission.
+ */
+router.post('/:id/submissions', requireAuthentication, async (req, res) => {
+  
+});
+
 
 /*
  * Route to replace data for a business.
  */
 router.put('/:id', requireAuthentication, async (req, res, next) => {
-  if (req.params.id === req.user) {
-    if (validateAgainstSchema(req.body, BusinessSchema)) {
-      try {
-        const id = parseInt(req.params.id)
-        const updateSuccessful = await replaceBusinessById(id, req.body);
-        if (updateSuccessful) {
-          res.status(200).send({
-            links: {
-              business: `/businesses/${id}`
-            }
-          });
-        } else {
-          next();
-        }
-      } catch (err) {
-        console.error(err);
-        res.status(500).send({
-          error: "Unable to update specified business.  Please try again later."
-        });
-      }
-    } else {
-      res.status(400).send({
-        error: "Request body is not a valid business object"
-      });
-    }
-} else {
-  res.status(403).send({
-    error: "Unauthorized to access the specified resource"
-  });
-}
+  
 });
 
 /*
  * Route to delete a business.
  */
 router.delete('/:id', requireAuthentication, async (req, res, next) => {
-  if (req.params.id === req.user) {
-    try {
-      const deleteSuccessful = await deleteBusinessById(parseInt(req.params.id));
-      if (deleteSuccessful) {
-        res.status(204).end();
-      } else {
-        next();
-      }
-    } catch (err) {
-      console.error(err);
-      res.status(500).send({
-        error: "Unable to delete business.  Please try again later."
-      });
-    }
-} else {
-  res.status(403).send({
-    error: "Unauthorized to access the specified resource"
-  });
-}
+  
 });
 
 module.exports = router;

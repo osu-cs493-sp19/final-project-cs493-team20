@@ -1,0 +1,27 @@
+description: >
+        An object representing information about a single student submission for an Assignment.
+      type: object
+      properties:
+        assignmentId:
+          oneOf:
+            - type: integer
+            - type: string
+          description: >
+            ID of the Assignment to which the Submission corresponds.  Exact type/format will depend on your implementation but will likely be either an integer or a string.
+          example: "123"
+        studentId:
+          oneOf:
+            - type: integer
+            - type: string
+          description: >
+            ID of the Student who created the submission.  Exact type/format will depend on your implementation but will likely be either an integer or a string.
+          example: "123"
+        timestamp:
+          type: string
+          format: date-time
+          description: >
+            Date and time Submission was made.  Should be in ISO 8601 format.
+          example: "2019-06-14T17:00:00-07:00"
+        file:
+          type: string
+          description: >

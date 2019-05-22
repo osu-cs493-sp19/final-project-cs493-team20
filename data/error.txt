@@ -1,0 +1,7 @@
+ description: >
+        An object representing an error response from the API.
+      type: object
+      properties:
+        error:
+          type: string
+          description: A message describing the Error.

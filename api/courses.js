@@ -1,158 +1,89 @@
-/*
- * API sub-router for businesses collection endpoints.
- */
-
 const router = require('express').Router();
 const { generateAuthToken, requireAuthentication } = require('../lib/auth');
 const { validateAgainstSchema } = require('../lib/validation');
-const {
-  ReviewSchema,
-  hasUserReviewedBusiness,
-  insertNewReview,
-  getReviewById,
-  replaceReviewById,
-  deleteReviewById
-} = require('../models/review');
+
+
 
 /*
- * Route to create a new review.
+ * Fetch the list of all Courses.
+ *
+ * Returns the list of all Courses.  This list should be paginated.  The Courses returned should not contain the list of students in the Course or the list of Assignments for the Course.
+ */
+router.get('/', async (req, res, next) => {
+ 
+});
+
+
+/*
+ * Create a new course.
+ *
+ * Creates a new Course with specified data and adds it to the application's database.  Only an authenticated User with 'admin' role can create a new Course.
  */
 router.post('/', requireAuthentication, async (req, res) => {
-  if (req.params.id === req.user) {
-    if (validateAgainstSchema(req.body, ReviewSchema)) {
-      try {
-        /*
-        * Make sure the user is not trying to review the same business twice.
-        * If they're not, then insert their review into the DB.
-        */
-        const alreadyReviewed = await hasUserReviewedBusiness(req.body.userid, req.body.businessid);
-        if (alreadyReviewed) {
-          res.status(403).send({
-            error: "User has already posted a review of this business"
-          });
-        } else {
-          const id = await insertNewReview(req.body);
-          res.status(201).send({
-            id: id,
-            links: {
-              review: `/reviews/${id}`,
-              business: `/businesses/${req.body.businessid}`
-            }
-          });
-        }
-      } catch (err) {
-        console.error(err);
-        res.status(500).send({
-          error: "Error inserting review into DB.  Please try again later."
-        });
-      }
-    } else {
-      res.status(400).send({
-        error: "Request body is not a valid review object."
-      });
-    }
-} else {
-  res.status(403).send({
-    error: "Unauthorized to access the specified resource"
-  });
-}
+  
+
 });
 
 /*
- * Route to fetch info about a specific review.
+ * Fetch data about a specific Course.
+ *
+ * Returns summary data about the Course, excluding the list of students enrolled in the course and the list of Assignments for the course.
  */
 router.get('/:id', async (req, res, next) => {
-  try {
-    const review = await getReviewById(parseInt(req.params.id));
-    if (review) {
-      res.status(200).send(review);
-    } else {
-      next();
-    }
-  } catch (err) {
-    console.error(err);
-    res.status(500).send({
-      error: "Unable to fetch review.  Please try again later."
-    });
-  }
+ 
 });
 
-/*
- * Route to update a review.
- */
-router.put('/:id', requireAuthentication, async (req, res, next) => {
-  if (req.params.id === req.user) {
-    if (validateAgainstSchema(req.body, ReviewSchema)) {
-      try {
-        /*
-        * Make sure the updated review has the same businessID and userID as
-        * the existing review.  If it doesn't, respond with a 403 error.  If the
-        * review doesn't already exist, respond with a 404 error.
-        */
-        const id = parseInt(req.params.id);
-        const existingReview = await getReviewById(id);
-        if (existingReview) {
-          if (req.body.businessid === existingReview.businessid && req.body.userid === existingReview.userid) {
-            const updateSuccessful = await replaceReviewById(id, req.body);
-            if (updateSuccessful) {
-              res.status(200).send({
-                links: {
-                  business: `/businesses/${req.body.businessid}`,
-                  review: `/reviews/${id}`
-                }
-              });
-            } else {
-              next();
-            }
-          } else {
-            res.status(403).send({
-              error: "Updated review must have the same businessID and userID"
-            });
-          }
-        } else {
-          next();
-        }
-      } catch (err) {
-        console.error(err);
-        res.status(500).send({
-          error: "Unable to update review.  Please try again later."
-        });
-      }
-    } else {
-      res.status(400).send({
-        error: "Request body is not a valid review object."
-      });
-    }
-} else {
-  res.status(403).send({
-    error: "Unauthorized to access the specified resource"
-  });
-}
-});
 
 /*
- * Route to delete a review.
+ * Remove a specific Course from the database.
+ *
+ * Completely removes the data for the specified Course, including all enrolled students, all Assignments, etc.  Only an authenticated User with 'admin' role can remove a Course.
  */
 router.delete('/:id', requireAuthentication, async (req, res, next) => {
-  if (req.params.id === req.user) {
-    try {
-      const deleteSuccessful = await deleteReviewById(parseInt(req.params.id));
-      if (deleteSuccessful) {
-        res.status(204).end();
-      } else {
-        next();
-      }
-    } catch (err) {
-      console.error(err);
-      res.status(500).send({
-        error: "Unable to delete review.  Please try again later."
-      });
-    }
-} else {
-  res.status(403).send({
-    error: "Unauthorized to access the specified resource"
-  });
-}
+  
+});
+
+
+/*
+ * Fetch a list of the students enrolled in the Course.
+ *
+ *  Returns a list containing the User IDs of all students currently enrolled in the Course.  Only an authenticated User with 'admin' role or an 
+ *  authenticated 'instructor' User whose ID matches the `instructorId` of the Course can fetch the list of enrolled students.
+ */
+router.get('/:id/students', async (req, res, next) => {
+ 
+});
+
+
+/*
+ * Update enrollment for a Course.
+ *
+ * Enrolls and/or unenrolls students from a Course.  Only an authenticated User with 'admin' role or an authenticated 'instructor' User whose 
+ * ID matches the `instructorId` of the Course can update the students enrolled in the Course.
+ */
+router.post('/:id/students', requireAuthentication, async (req, res) => {
+  
+});
+
+
+/*
+ * Fetch a CSV file containing list of the students enrolled in the Course.
+ *
+ *  Returns a CSV file containing information about all of the students currently enrolled in the Course, including names, IDs, 
+ *  and email addresses.  Only an authenticated User with 'admin' role or an authenticated 'instructor' User whose ID matches the `instructorId` of the Course can fetch the course roster.
+ */
+router.get('/:id/roster', async (req, res, next) => {
+ 
+});
+
+
+/*
+ * Fetch a list of the Assignments for the Course.
+ *
+ *  Returns a list containing the Assignment IDs of all Assignments for the Course.
+ */
+router.get('/:id/assignments', async (req, res, next) => {
+ 
 });
 
 module.exports = router;

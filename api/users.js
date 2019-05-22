@@ -1,159 +1,40 @@
-/*
- * API sub-router for businesses collection endpoints.
- */
 
 const router = require('express').Router();
 const { generateAuthToken, requireAuthentication } = require('../lib/auth');
 
 const { validateAgainstSchema } = require('../lib/validation');
-const {
-  BusinessSchema,
-  getBusinessesPage,
-  insertNewBusiness,
-  getBusinessDetailsById,
-  replaceBusinessById,
-  deleteBusinessById,
-  getBusinessesByOwnerdId
-} = require('../models/business');
+
+
 
 /*
- * Route to return a paginated list of businesses.
- */
-router.get('/', async (req, res) => {
-  try {
-    /*
-     * Fetch page info, generate HATEOAS links for surrounding pages and then
-     * send response.
-     */
-    const businessPage = await getBusinessesPage(parseInt(req.query.page) || 1);
-    businessPage.links = {};
-    if (businessPage.page < businessPage.totalPages) {
-      businessPage.links.nextPage = `/businesses?page=${businessPage.page + 1}`;
-      businessPage.links.lastPage = `/businesses?page=${businessPage.totalPages}`;
-    }
-    if (businessPage.page > 1) {
-      businessPage.links.prevPage = `/businesses?page=${businessPage.page - 1}`;
-      businessPage.links.firstPage = '/businesses?page=1';
-    }
-    res.status(200).send(businessPage);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send({
-      error: "Error fetching businesses list.  Please try again later."
-    });
-  }
-});
-
-/*
- * Route to create a new business.
+ * Create a new User.
+ *
+ * Create and store a new application User with specified data and adds it to the application's database.  Only an authenticated User with 'admin' role can create users with the 'admin' or 'instructor' roles.
  */
 router.post('/', requireAuthentication, async (req, res) => {
-  if (req.params.id === req.user) {
-    if (validateAgainstSchema(req.body, BusinessSchema)) {
-      try {
-        const id = await insertNewBusiness(req.body);
-        res.status(201).send({
-          id: id,
-          links: {
-            business: `/businesses/${id}`
-          }
-        });
-      } catch (err) {
-        console.error(err);
-        res.status(500).send({
-          error: "Error inserting business into DB.  Please try again later."
-        });
-      }
-    } else {
-      res.status(400).send({
-        error: "Request body is not a valid business object."
-      });
-    }
-} else {
-  res.status(403).send({
-    error: "Unauthorized to access the specified resource"
-  });
-}
+  
 });
 
 /*
- * Route to fetch info about a specific business.
+ * Log in a User.
+ *
+ * Authenticate a specific User with their email address and password.
  */
-router.get('/:id', async (req, res, next) => {
-  try {
-    const business = await getBusinessDetailsById(parseInt(req.params.id));
-    if (business) {
-      res.status(200).send(business);
-    } else {
-      next();
-    }
-  } catch (err) {
-    console.error(err);
-    res.status(500).send({
-      error: "Unable to fetch business.  Please try again later."
-    });
-  }
+router.post('/login', requireAuthentication, async (req, res) => {
+  
 });
 
 /*
- * Route to replace data for a business.
+ * Fetch data about a specific User.
+ * Returns information about the specified User.  If the User has the 'instructor' role, the response should include a list of the IDs of the Courses the User teaches (i.e. Courses whose `instructorId` field matches the ID of this User).  
+ * If the User has the 'student' role, the response should include a list of the IDs of the Courses the User is enrolled in.  Only an authenticated User whose ID matches the ID of the requested User can fetch this information.
  */
-router.put('/:id', requireAuthentication, async (req, res, next) => {
-  if (req.params.id === req.user) {
-    if (validateAgainstSchema(req.body, BusinessSchema)) {
-      try {
-        const id = parseInt(req.params.id)
-        const updateSuccessful = await replaceBusinessById(id, req.body);
-        if (updateSuccessful) {
-          res.status(200).send({
-            links: {
-              business: `/businesses/${id}`
-            }
-          });
-        } else {
-          next();
-        }
-      } catch (err) {
-        console.error(err);
-        res.status(500).send({
-          error: "Unable to update specified business.  Please try again later."
-        });
-      }
-    } else {
-      res.status(400).send({
-        error: "Request body is not a valid business object"
-      });
-    }
-} else {
-  res.status(403).send({
-    error: "Unauthorized to access the specified resource"
-  });
-}
+router.get('/:id', async (req, res) => {
+  
 });
 
-/*
- * Route to delete a business.
- */
-router.delete('/:id', requireAuthentication, async (req, res, next) => {
-  if (req.params.id === req.user) {
-    try {
-      const deleteSuccessful = await deleteBusinessById(parseInt(req.params.id));
-      if (deleteSuccessful) {
-        res.status(204).end();
-      } else {
-        next();
-      }
-    } catch (err) {
-      console.error(err);
-      res.status(500).send({
-        error: "Unable to delete business.  Please try again later."
-      });
-    }
-} else {
-  res.status(403).send({
-    error: "Unauthorized to access the specified resource"
-  });
-}
-});
+
+
+
 
 module.exports = router;

@@ -1,0 +1,24 @@
+ description: >
+        An object representing information about a Tarpaulin application user.
+      type: object
+      properties:
+        name:
+          type: string
+          description: Full name of the User.
+          example: Jane Doe
+        email:
+          type: string
+          description: >
+            Email address for the User.  This is required to be unique among all Users.
+          example: doej@oregonstate.edu
+        password:
+          type: string
+          description: >
+            The User's plain-text password.  This is required when creating a new User and when logging in.
+          example: hunter2
+        role:
+          type: string
+          enum: [admin, instructor, student]
+          description: >
+            Permission role of the User.  Can be either 'admin', 'instructor', or 'student'.
+          default: student
