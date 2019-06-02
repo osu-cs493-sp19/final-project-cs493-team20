@@ -12,6 +12,16 @@ const AssignmentSchema = {
 };
 exports.AssignmentSchema = AssignmentSchema;
 
+/*
+ * Schema describing required/optional fields of a Submission object.
+ */
+const SubmissionSchema = {
+  name: { required: true },
+  address: { required: true },
+  //fill in the rest
+};
+exports.SubmissionSchema = SubmissionSchema;
+
 
 /*
  * Executes a MySQL query to fetch the total number of Assignments.  Returns
@@ -115,7 +125,7 @@ function getAssignmentById(id) {
     );
   });
 }
-
+///////////////////////////////////FIX/////////////////////////////////////////////////////////
 /*
  * Executes a MySQL query to fetch detailed information about a single
  * specified Assignment based on its ID, including photo and review data for
@@ -137,6 +147,7 @@ async function getAssignmentDetailsById(id) {
 }
 exports.getAssignmentDetailsById = getAssignmentDetailsById;
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 /*
  * Executes a MySQL query to replace a specified Assignment with new data.
  * Returns a Promise that resolves to true if the Assignment specified by
@@ -205,3 +216,56 @@ function getAssignmentsByOwnerId(id) {
   });
 }
 exports.getAssignmentsByOwnerId = getAssignmentsByOwnerId;
+
+function getSubmissionsPage(page) {
+  return new Promise(async (resolve, reject) => {
+    /*
+     * Compute last page number and make sure page is within allowed bounds.
+     * Compute offset into collection.
+     */
+     const count = await getAssignmentsCount();
+     const pageSize = 10;
+     const lastPage = Math.ceil(count / pageSize);
+     page = page > lastPage ? lastPage : page;
+     page = page < 1 ? 1 : page;
+     const offset = (page - 1) * pageSize;
+
+    mysqlPool.query(
+      'SELECT * FROM Submissions ORDER BY id LIMIT ?,?',
+      [ offset, pageSize ],
+      (err, results) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({
+            Assignments: results,
+            page: page,
+            totalPages: lastPage,
+            pageSize: pageSize,
+            count: count
+          });
+        }
+      }
+    );
+  });
+}
+exports.getSubmissionsPage = getSubmissionsPage;
+
+function insertNewSubmission(Submission){
+  return new Promise((resolve, reject) => {
+    Assignment = extractValidFields(Submission, SubmissionSchema);
+    Submission.id = null;
+    mysqlPool.query(
+      'INSERT INTO Submissions SET ?',
+      Submission,
+      (err, result) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(result.insertId);
+        }
+      }
+    );
+  });
+}
+exports.insertNewSubmission = insertNewSubmission;

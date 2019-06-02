@@ -1,7 +1,15 @@
 const router = require('express').Router();
 const { generateAuthToken, requireAuthentication } = require('../lib/auth');
 const { validateAgainstSchema } = require('../lib/validation');
-const { function1, function2} = require('../models/courses');
+const {
+    courseSchema,
+    getCoursesPage,
+    insertNewCourse,
+    getCourseDetailsById,
+    replaceCourseById,
+    deleteCourseById,
+    getCoursesByOwnerdId
+  } = require('../models/course');
 
 
 /*
@@ -10,7 +18,28 @@ const { function1, function2} = require('../models/courses');
  * Returns the list of all Courses.  This list should be paginated.  The Courses returned should not contain the list of students in the Course or the list of Assignments for the Course.
  */
 router.get('/', async (req, res, next) => {
- 
+    try {
+        /*
+         * Fetch page info, generate HATEOAS links for surrounding pages and then
+         * send response.
+         */
+        const coursePage = await getCoursesPage(parseInt(req.query.page) || 1);
+        coursePage.links = {};
+        if (coursePage.page < coursePage.totalPages) {
+          coursePage.links.nextPage = `/courses?page=${coursePage.page + 1}`;
+          coursePage.links.lastPage = `/courses?page=${coursePage.totalPages}`;
+        }
+        if (coursePage.page > 1) {
+          coursePage.links.prevPage = `/courses?page=${coursePage.page - 1}`;
+          coursePage.links.firstPage = '/courses?page=1';
+        }
+        res.status(200).send(coursePage);
+      } catch (err) {
+        console.error(err);
+        res.status(500).send({
+          error: "Error fetching courses list.  Please try again later."
+        });
+      }
 });
 
 
@@ -20,7 +49,32 @@ router.get('/', async (req, res, next) => {
  * Creates a new Course with specified data and adds it to the application's database.  Only an authenticated User with 'admin' role can create a new Course.
  */
 router.post('/', requireAuthentication, async (req, res) => {
-  
+    if (req.params.id == req.user) {
+        if (validateAgainstSchema(req.body, courseSchema)) {
+          try {
+            const id = await insertNewCourse(req.body);
+            res.status(201).send({
+              id: id,
+              links: {
+                course: `/courses/${id}`
+              }
+            });
+          } catch (err) {
+            console.error(err);
+            res.status(500).send({
+              error: "Error inserting course into DB.  Please try again later."
+            });
+          }
+        } else {
+          res.status(400).send({
+            error: "Request body is not a valid course object."
+          });
+        }
+    } else {
+      res.status(403).send({
+        error: "Unauthorized to access the specified resource"
+      });
+    }
 
 });
 
@@ -30,7 +84,19 @@ router.post('/', requireAuthentication, async (req, res) => {
  * Returns summary data about the Course, excluding the list of students enrolled in the course and the list of Assignments for the course.
  */
 router.get('/:id', async (req, res, next) => {
- 
+    try {
+        const course = await getCourseDetailsById(parseInt(req.params.id));
+        if (course) {
+          res.status(200).send(course);
+        } else {
+          next();
+        }
+      } catch (err) {
+        console.error(err);
+        res.status(500).send({
+          error: "Unable to fetch course.  Please try again later."
+        });
+      }
 });
 
 
@@ -40,7 +106,25 @@ router.get('/:id', async (req, res, next) => {
  * Completely removes the data for the specified Course, including all enrolled students, all Assignments, etc.  Only an authenticated User with 'admin' role can remove a Course.
  */
 router.delete('/:id', requireAuthentication, async (req, res, next) => {
-  
+    if (req.params.id == req.user) {
+        try {
+          const deleteSuccessful = await deleteCourseById(parseInt(req.params.id));
+          if (deleteSuccessful) {
+            res.status(204).end();
+          } else {
+            next();
+          }
+        } catch (err) {
+          console.error(err);
+          res.status(500).send({
+            error: "Unable to delete course.  Please try again later."
+          });
+        }
+    } else {
+      res.status(403).send({
+        error: "Unauthorized to access the specified resource"
+      });
+    }
 });
 
 
@@ -51,7 +135,19 @@ router.delete('/:id', requireAuthentication, async (req, res, next) => {
  *  authenticated 'instructor' User whose ID matches the `instructorId` of the Course can fetch the list of enrolled students.
  */
 router.get('/:id/students', async (req, res, next) => {
- 
+    try {
+        const course = await getStudentsInCourse(parseInt(req.params.id));
+        if (course) {
+          res.status(200).send(course);
+        } else {
+          next();
+        }
+      } catch (err) {
+        console.error(err);
+        res.status(500).send({
+          error: "Unable to fetch course.  Please try again later."
+        });
+      }
 });
 
 
@@ -62,7 +158,39 @@ router.get('/:id/students', async (req, res, next) => {
  * ID matches the `instructorId` of the Course can update the students enrolled in the Course.
  */
 router.post('/:id/students', requireAuthentication, async (req, res) => {
-  
+    if (req.params.id == req.user) {
+        if (validateAgainstSchema(req.body, courseSchema)) {
+          try {
+            const id = parseInt(req.params.id);
+            
+            //todoflag is set for 0 when unenrolling student, 1 when updating student, 2 when creating new student
+            const todoflag = parseInt(req.params.flag);
+            const updateSuccessful = await replaceStudentInCourse(id, req.body, flag);
+            if (updateSuccessful) {
+              res.status(200).send({
+                links: {
+                  course: `/courses/${id}`
+                }
+              });
+            } else {
+              next();
+            }
+          } catch (err) {
+            console.error(err);
+            res.status(500).send({
+              error: "Unable to update specified enrollment.  Please try again later."
+            });
+          }
+        } else {
+          res.status(400).send({
+            error: "Request body is not a valid enrollment object"
+          });
+        }
+    } else {
+      res.status(403).send({
+        error: "Unauthorized to access the specified resource"
+      });
+    }
 });
 
 
@@ -73,7 +201,19 @@ router.post('/:id/students', requireAuthentication, async (req, res) => {
  *  and email addresses.  Only an authenticated User with 'admin' role or an authenticated 'instructor' User whose ID matches the `instructorId` of the Course can fetch the course roster.
  */
 router.get('/:id/roster', async (req, res, next) => {
- 
+    try {
+        const course = await getStudentsInCourseCSV(parseInt(req.params.id));
+        if (course) {
+          res.status(200).send(course);
+        } else {
+          next();
+        }
+      } catch (err) {
+        console.error(err);
+        res.status(500).send({
+          error: "Unable to fetch CSV List of students for course.  Please try again later."
+        });
+      }
 });
 
 
@@ -83,7 +223,19 @@ router.get('/:id/roster', async (req, res, next) => {
  *  Returns a list containing the Assignment IDs of all Assignments for the Course.
  */
 router.get('/:id/assignments', async (req, res, next) => {
- 
+    try {
+        const course = await getAssignmentsByCourseID(parseInt(req.params.id));
+        if (course) {
+          res.status(200).send(course);
+        } else {
+          next();
+        }
+      } catch (err) {
+        console.error(err);
+        res.status(500).send({
+          error: "Unable to fetch list of assignments.  Please try again later."
+        });
+      }
 });
 
 module.exports = router;

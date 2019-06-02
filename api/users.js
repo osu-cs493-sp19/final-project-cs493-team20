@@ -1,8 +1,9 @@
 
 const router = require('express').Router();
 const { generateAuthToken, requireAuthentication } = require('../lib/auth');
-const { function1, function2} = require('../models/users');
 const { validateAgainstSchema } = require('../lib/validation');
+const { generateAuthToken, requireAuthentication } = require('../lib/auth');
+const { UserSchema, insertNewUser, getUserById, validateUser, getAdmin } = require('../models/user');
 
 
 
@@ -12,7 +13,23 @@ const { validateAgainstSchema } = require('../lib/validation');
  * Create and store a new application User with specified data and adds it to the application's database.  Only an authenticated User with 'admin' role can create users with the 'admin' or 'instructor' roles.
  */
 router.post('/', requireAuthentication, async (req, res) => {
-  
+    if (validateAgainstSchema(req.body, UserSchema)) {
+        try {
+          const id = await insertNewUser(req.body);
+          res.status(201).send({
+            _id: id
+          });
+        } catch (err) {
+          console.error("  -- Error:", err);
+          res.status(500).send({
+            error: "Error inserting new user.  Try again later."
+          });
+        }
+      } else {
+        res.status(400).send({
+          error: "Request body does not contain a valid User."
+        });
+      }
 });
 
 /*
@@ -21,7 +38,29 @@ router.post('/', requireAuthentication, async (req, res) => {
  * Authenticate a specific User with their email address and password.
  */
 router.post('/login', requireAuthentication, async (req, res) => {
-  
+    if (req.body && req.body.id && req.body.password) {
+        try {
+          const authenticated = await validateUser(req.body.id, req.body.password);
+          if (authenticated) {
+            const token = generateAuthToken(req.body.id, getAdmin(req.body.id));
+            res.status(200).send({
+              token: token
+            });
+          } else {
+            res.status(401).send({
+              error: "Invalid credentials"
+            });
+          }
+        } catch (err) {
+          res.status(500).send({
+            error: "Error validating user.  Try again later."
+          });
+        }
+      } else {
+        res.status(400).send({
+          error: "Request body was invalid"
+        });
+      }
 });
 
 /*
@@ -30,7 +69,25 @@ router.post('/login', requireAuthentication, async (req, res) => {
  * If the User has the 'student' role, the response should include a list of the IDs of the Courses the User is enrolled in.  Only an authenticated User whose ID matches the ID of the requested User can fetch this information.
  */
 router.get('/:id', async (req, res) => {
-  
+    if (req.params.id == req.user) {
+        try {
+          const user = await getUserById(req.params.id);
+          if (user) {
+            res.status(200).send(user);
+          } else {
+            next();
+          }
+        } catch (err) {
+          console.error("  -- Error:", err);
+          res.status(500).send({
+            error: "Error fetching user.  Try again later."
+          });
+        }
+      } else {
+        res.status(403).send({
+          error: "Unauthorized to access the specified resource"
+        });
+      }
 });
 
 

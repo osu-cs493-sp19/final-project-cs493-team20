@@ -204,3 +204,35 @@ function getUsersByOwnerId(id) {
   });
 }
 exports.getUsersByOwnerId = getUsersByOwnerId;
+
+
+//finds out whether a user has admin privileges or not
+function getAdmin(id) {
+  return new Promise((resolve, reject) => {
+    mysqlPool.query(
+      'SELECT admin FROM users WHERE id = ?',
+      [ id ],
+      (err, results) => {
+        if (err) {
+          reject(err);
+        } else {
+          console.log(results[0])
+          result = results[0];
+          if (result == "true") result = 1;
+          if (result == "false") result = 0;
+          console.log(result);
+          resolve(result);
+        }
+      }
+    );
+  });
+}
+exports.getAdmin = getAdmin;
+
+//validates user password matches the one they provided
+async function validateUser (id, password) {
+  const user = await getUserById(id);
+  const authenticated = user && await bcrypt.compare(password, user.password);
+  return authenticated;
+}
+exports.validateUser = validateUser;

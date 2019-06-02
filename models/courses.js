@@ -12,6 +12,16 @@ const courseSchema = {
 };
 exports.courseSchema = courseSchema;
 
+/*
+ * Schema describing required/optional fields of a student object.
+ */
+const studentSchema = {
+  name: { required: true },
+  address: { required: true },
+  //fill in the rest
+};
+exports.studentSchema = studentSchema;
+
 
 /*
  * Executes a MySQL query to fetch the total number of Courses.  Returns
@@ -116,6 +126,8 @@ function getcourseById(id) {
   });
 }
 
+
+//////////////////////// FIX THIS ONE ////////////////////////////////////////////////////
 /*
  * Executes a MySQL query to fetch detailed information about a single
  * specified course based on its ID, including photo and review data for
@@ -137,6 +149,7 @@ async function getcourseDetailsById(id) {
 }
 exports.getcourseDetailsById = getcourseDetailsById;
 
+////////////////////////////////////////////////////////////////////////////////////////
 /*
  * Executes a MySQL query to replace a specified course with new data.
  * Returns a Promise that resolves to true if the course specified by
@@ -205,3 +218,115 @@ function getCoursesByOwnerId(id) {
   });
 }
 exports.getCoursesByOwnerId = getCoursesByOwnerId;
+
+
+//Replaces student information OR creates new student within a course
+//flag is set for 0 when unenrolling student, 1 when updating student, 2 when creating new student
+function replaceStudentInCourse(id, student, flag){
+
+
+  //unenrolling
+  if (flag == 0){
+    return new Promise((resolve, reject) => {
+      mysqlPool.query(
+        'DELETE FROM Students WHERE id = ?',
+        [ id ],
+        (err, result) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(result.affectedRows > 0);
+          }
+        }
+      );
+    });
+  }
+  //updating
+  if (flag == 1){
+    return new Promise((resolve, reject) => {
+      student = extractValidFields(student, studentSchema);
+      mysqlPool.query(
+        'UPDATE Students SET ? WHERE id = ?',
+        [ student, id ],
+        (err, result) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(result.affectedRows > 0);
+          }
+        }
+      );
+    });
+  }
+  //creating
+  if (flag == 2){
+    return new Promise((resolve, reject) => {
+      student = extractValidFields(student, studentSchema);
+      student.id = null;
+      mysqlPool.query(
+        'INSERT INTO Students SET ?',
+        student,
+        (err, result) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(result.insertId);
+          }
+        }
+      );
+    });
+  }
+}
+exports.replaceStudentInCourse = replaceStudentInCourse;
+
+function getStudentsInCourse(id){
+  return new Promise((resolve, reject) => {
+    mysqlPool.query(
+      'SELECT * FROM Students WHERE courseid = ?',
+      [ id ],
+      (err, results) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(results);
+        }
+      }
+    );
+  });
+}
+exports.getStudentsInCourse = getStudentsInCourse;
+
+function getStudentsInCourseCSV(id){
+  return new Promise((resolve, reject) => {
+    mysqlPool.query(
+      'SELECT * FROM Students WHERE courseid = ?',
+      [ id ],
+      (err, results) => {
+        if (err) {
+          reject(err);
+        } else {
+          //CONVERT TO CSV HERE
+          resolve(results);
+        }
+      }
+    );
+  });
+}
+exports.getStudentsInCourseCSV = getStudentsInCourseCSV;
+
+function getAssignmentsByCourseID(id){
+  return new Promise((resolve, reject) => {
+    mysqlPool.query(
+      'SELECT * FROM Assignments WHERE courseid = ?',
+      [ id ],
+      (err, results) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(results);
+        }
+      }
+    );
+  });
+}
+exports.getAssignmentsByCourseID = getAssignmentsByCourseID;
