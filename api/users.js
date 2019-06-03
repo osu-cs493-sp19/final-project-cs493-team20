@@ -14,22 +14,28 @@ const { UserSchema, insertNewUser, getUserById, validateUser, getAdmin } = requi
  */
 router.post('/', requireAuthentication, async (req, res) => {
     if (validateAgainstSchema(req.body, UserSchema)) {
-        try {
-          const id = await insertNewUser(req.body);
-          res.status(201).send({
-            _id: id
-          });
-        } catch (err) {
-          console.error("  -- Error:", err);
-          res.status(500).send({
-            error: "Error inserting new user.  Try again later."
-          });
-        }
-      } else {
-        res.status(400).send({
+		if((req.body.role == 1 || req.body.role == 2) && req.role != 2){
+			res.status(403).send({
+				error: "The request was not made by an authenticated User of the admin role."
+			});
+		}else {
+			try {
+			  const id = await insertNewUser(req.body);
+			  res.status(201).send({
+				_id: id
+			  });
+			} catch (err) {
+			  console.error("  -- Error:", err);
+			  res.status(500).send({
+				error: "Error inserting new user.  Try again later."
+			  });
+			}
+		}
+    } else {
+		res.status(400).send({
           error: "Request body does not contain a valid User."
         });
-      }
+    }
 });
 
 /*
@@ -68,7 +74,7 @@ router.post('/login', requireAuthentication, async (req, res) => {
  * Returns information about the specified User.  If the User has the 'instructor' role, the response should include a list of the IDs of the Courses the User teaches (i.e. Courses whose `instructorId` field matches the ID of this User).  
  * If the User has the 'student' role, the response should include a list of the IDs of the Courses the User is enrolled in.  Only an authenticated User whose ID matches the ID of the requested User can fetch this information.
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', requireAuthentication, async (req, res) => {
     if (req.params.id == req.user) {
         try {
           const user = await getUserById(req.params.id);
