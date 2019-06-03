@@ -49,7 +49,7 @@ router.get('/', async (req, res, next) => {
  * Creates a new Course with specified data and adds it to the application's database.  Only an authenticated User with 'admin' role can create a new Course.
  */
 router.post('/', requireAuthentication, async (req, res) => {
-    if (req.params.id == req.user) {
+    if (req.role == 2) {
         if (validateAgainstSchema(req.body, courseSchema)) {
           try {
             const id = await insertNewCourse(req.body);
@@ -106,7 +106,7 @@ router.get('/:id', async (req, res, next) => {
  * Completely removes the data for the specified Course, including all enrolled students, all Assignments, etc.  Only an authenticated User with 'admin' role can remove a Course.
  */
 router.delete('/:id', requireAuthentication, async (req, res, next) => {
-    if (req.params.id == req.user) {
+    if (req.role == 2) {
         try {
           const deleteSuccessful = await deleteCourseById(parseInt(req.params.id));
           if (deleteSuccessful) {
@@ -134,14 +134,21 @@ router.delete('/:id', requireAuthentication, async (req, res, next) => {
  *  Returns a list containing the User IDs of all students currently enrolled in the Course.  Only an authenticated User with 'admin' role or an 
  *  authenticated 'instructor' User whose ID matches the `instructorId` of the Course can fetch the list of enrolled students.
  */
-router.get('/:id/students', async (req, res, next) => {
+router.get('/:id/students', requireAuthentication, async (req, res, next) => {
     try {
+		const courseInfo = await getcourseById(req.params.id);
         const course = await getStudentsInCourse(parseInt(req.params.id));
-        if (course) {
-          res.status(200).send(course);
-        } else {
-          next();
-        }
+		if(req.role == 2 || (req.role == 1 && req.user == courseInfo.instructorId)){
+			if (course) {
+			  res.status(200).send(course);
+			} else {
+			  next();
+			}
+		} else{
+			res.status(403).send({
+				error: "User is not authenticated to be able to access the list of enrolled students"
+			});
+		}
       } catch (err) {
         console.error(err);
         res.status(500).send({
@@ -158,39 +165,40 @@ router.get('/:id/students', async (req, res, next) => {
  * ID matches the `instructorId` of the Course can update the students enrolled in the Course.
  */
 router.post('/:id/students', requireAuthentication, async (req, res) => {
-    if (req.params.id == req.user) {
-        if (validateAgainstSchema(req.body, courseSchema)) {
-          try {
-            const id = parseInt(req.params.id);
-            
-            //todoflag is set for 0 when unenrolling student, 1 when updating student, 2 when creating new student
-            const todoflag = parseInt(req.params.flag);
-            const updateSuccessful = await replaceStudentInCourse(id, req.body, flag);
-            if (updateSuccessful) {
-              res.status(200).send({
-                links: {
-                  course: `/courses/${id}`
-                }
-              });
-            } else {
-              next();
-            }
-          } catch (err) {
-            console.error(err);
-            res.status(500).send({
-              error: "Unable to update specified enrollment.  Please try again later."
-            });
-          }
-        } else {
-          res.status(400).send({
-            error: "Request body is not a valid enrollment object"
-          });
-        }
-    } else {
-      res.status(403).send({
-        error: "Unauthorized to access the specified resource"
-      });
-    }
+	if (validateAgainstSchema(req.body, courseSchema)) {
+	  try {
+		const id = parseInt(req.params.id);
+		const courseInfo = await getcourseById(req.params.id);
+		if(req.role == 2 || (req.role == 1 && req.user == courseInfo.instructorId)){
+			//todoflag is set for 0 when unenrolling student, 1 when updating student, 2 when creating new student
+			const todoflag = parseInt(req.params.flag);
+			const updateSuccessful = await replaceStudentInCourse(id, req.body, flag);
+			if (updateSuccessful) {
+			  res.status(200).send({
+				links: {
+				  course: `/courses/${id}`
+				}
+			  });
+			} else {
+			  next();
+			}
+		} else {
+			res.status(403).send({
+				error: "User is unauthorized to make changes to enrollment. Must be admin or teacher that is teaching the class"
+			});
+		}
+	  } catch (err) {
+		console.error(err);
+		res.status(500).send({
+		  error: "Unable to update specified enrollment.  Please try again later."
+		});
+	  }
+	} else {
+	  res.status(400).send({
+		error: "Request body is not a valid enrollment object"
+	  });
+	}
+
 });
 
 
@@ -202,12 +210,19 @@ router.post('/:id/students', requireAuthentication, async (req, res) => {
  */
 router.get('/:id/roster', async (req, res, next) => {
     try {
-        const course = await getStudentsInCourseCSV(parseInt(req.params.id));
-        if (course) {
-          res.status(200).send(course);
-        } else {
-          next();
-        }
+		const courseInfo = await getcourseById(req.params.id);
+		if(req.role == 2 || (req.role == 1 && req.user == courseInfo.instructorId)){
+			const course = await getStudentsInCourseCSV(parseInt(req.params.id));
+			if (course) {
+			  res.status(200).send(course);
+			} else {
+			  next();
+			}
+		} else {
+			res.status(403).send({
+				error: "User is unauthorized to fetch the course roster"
+			})
+		}
       } catch (err) {
         console.error(err);
         res.status(500).send({
