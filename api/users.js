@@ -2,8 +2,7 @@
 const router = require('express').Router();
 const { generateAuthToken, requireAuthentication } = require('../lib/auth');
 const { validateAgainstSchema } = require('../lib/validation');
-const { generateAuthToken, requireAuthentication } = require('../lib/auth');
-const { UserSchema, insertNewUser, getUserById, validateUser, getAdmin } = require('../models/user');
+const { UserSchema, insertNewUser, getUserById, validateUser, getAdmin } = require('../models/users');
 
 
 

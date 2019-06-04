@@ -9,7 +9,7 @@ const {
     replaceCourseById,
     deleteCourseById,
     getCoursesByOwnerdId
-  } = require('../models/course');
+  } = require('../models/courses');
 
 
 /*
