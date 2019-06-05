@@ -2,7 +2,7 @@ version: '3'
 services:
   api:
     build: .
-    image: businesses-api
+    image: tarpaulin-api
     restart: always
     ports:
       - 8000:8000
@@ -12,7 +12,7 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_HOST: mysql
       MYSQL_PORT: 3306
-k
+
   mysql:
     image: mysql:5
     restart: always
@@ -27,4 +27,3 @@ k
 
 volumes:
   mysql-data:
-    name: businesses-mysql-data

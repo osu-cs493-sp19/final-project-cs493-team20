@@ -208,7 +208,7 @@ router.post('/:id/students', requireAuthentication, async (req, res) => {
  *  Returns a CSV file containing information about all of the students currently enrolled in the Course, including names, IDs, 
  *  and email addresses.  Only an authenticated User with 'admin' role or an authenticated 'instructor' User whose ID matches the `instructorId` of the Course can fetch the course roster.
  */
-router.get('/:id/roster', async (req, res, next) => {
+router.get('/:id/roster', requireAuthentication, async (req, res, next) => {
     try {
 		const courseInfo = await getcourseById(req.params.id);
 		if(req.role == 2 || (req.role == 1 && req.user == courseInfo.instructorId)){

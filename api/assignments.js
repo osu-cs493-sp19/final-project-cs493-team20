@@ -76,7 +76,21 @@ router.get('/:id', async (req, res) => {
 
 
 //We have not worked with a patch request before so I commented this out. I'm not sure if we should create this or not. Please refer to .yaml
-//router.patch('/:id', async (req, res) => {
+//router.patch('/:id', requireAuthentication, async (req, res) => {
+	/* try{
+	const assignment = await getAssignmentById(parseInt(req.params.id))
+	  const course = await getCourseDetailsById(assignment.courseId);
+	  if(req.role == 2 || (req.role == 1 && req.user == course.instructorId)){
+		  
+	  } else {
+		  res.status(403).send({
+			error: "User is not authorized to patch this assignment"  
+		  })
+	  }
+	  
+	} catch (err) {
+		
+	} */
 //});
 
 
@@ -117,7 +131,7 @@ router.delete('/:id', requireAuthentication, async (req, res, next) => {
  *  Returns the list of all Submissions for an Assignment.  This list should be paginated.  Only an authenticated User with 'admin' role or an authenticated
  *  'instructor' User whose ID matches the `instructorId` of the Course corresponding to the Assignment's `courseId` can fetch the Submissions for an Assignment.
  */
-router.get('/:id/submissions', async (req, res, next) => {
+router.get('/:id/submissions', requireAuthentication, async (req, res, next) => {
   try {
     /*
      * Fetch page info, generate HATEOAS links for surrounding pages and then

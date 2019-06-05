@@ -1,6 +1,6 @@
 const mysqlPool = require('../lib/mysqlPool');
 const { extractValidFields } = require('../lib/validation');
-
+const bcrypt = require('bcryptjs');
 /*
  * Schema describing required/optional fields of a User object.
  */
@@ -230,9 +230,29 @@ function getAdmin(id) {
 exports.getAdmin = getAdmin;
 
 //validates user password matches the one they provided
-async function validateUser (id, password) {
-  const user = await getUserById(id);
+async function validateUser (email, password) {
+  const user = await getUserByEmail(email);
   const authenticated = user && await bcrypt.compare(password, user.password);
   return authenticated;
 }
 exports.validateUser = validateUser;
+
+//Gets User by email
+function getUserByEmail(email){
+	return new Promise(async (resolve, reject) => {
+		mysqlPool.query(
+			'SELECT * FROM users WHERE email = ?',
+			email,
+			(err, results) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve(results[0]);
+				}
+			}
+		);
+	});
+}
+exports.getUserByEmail = getUserByEmail;
+
+

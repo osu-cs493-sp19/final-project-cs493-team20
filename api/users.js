@@ -2,7 +2,7 @@
 const router = require('express').Router();
 const { generateAuthToken, requireAuthentication } = require('../lib/auth');
 const { validateAgainstSchema } = require('../lib/validation');
-const { UserSchema, insertNewUser, getUserById, validateUser, getAdmin } = require('../models/users');
+const { UserSchema, insertNewUser, getUserById, validateUser, getUserByEmail } = require('../models/users');
 
 
 
@@ -42,12 +42,13 @@ router.post('/', requireAuthentication, async (req, res) => {
  *
  * Authenticate a specific User with their email address and password.
  */
-router.post('/login', requireAuthentication, async (req, res) => {
-    if (req.body && req.body.id && req.body.password) {
+router.post('/login', async (req, res) => {
+    if (req.body && req.body.email && req.body.password) {
         try {
-          const authenticated = await validateUser(req.body.id, req.body.password);
+          const authenticated = await validateUser(req.body.email, req.body.password);
           if (authenticated) {
-            const token = generateAuthToken(req.body.id, getAdmin(req.body.id));
+			const user = await getUserByEmail(req.body.email);
+            const token = await generateAuthToken(req.body.email, user.role);
             res.status(200).send({
               token: token
             });
@@ -57,6 +58,7 @@ router.post('/login', requireAuthentication, async (req, res) => {
             });
           }
         } catch (err) {
+			console.log(err)
           res.status(500).send({
             error: "Error validating user.  Try again later."
           });
