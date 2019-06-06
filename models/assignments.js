@@ -8,6 +8,7 @@ const { extractValidFields } = require('../lib/validation');
 const AssignmentSchema = {
   name: { required: true },
   address: { required: true },
+  courseId: { required: true}
   //fill in the rest
 };
 exports.AssignmentSchema = AssignmentSchema;
