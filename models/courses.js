@@ -130,22 +130,10 @@ function getcourseById(id) {
 //////////////////////// FIX THIS ONE ////////////////////////////////////////////////////
 /*
  * Executes a MySQL query to fetch detailed information about a single
- * specified course based on its ID, including photo and review data for
- * the course.  Returns a Promise that resolves to an object containing
- * information about the requested course.  If no course with the
- * specified ID exists, the returned Promise will resolve to null.
+ * specified course based on its ID, 
  */
 async function getcourseDetailsById(id) {
-  /*
-   * Execute three sequential queries to get all of the info about the
-   * specified course, including its reviews and photos.
-   */
-  const course = await getcourseById(id);
-  if (course) {
-    course.reviews = await getReviewsBycourseId(id);
-    course.photos = await getPhotosBycourseId(id);
-  }
-  return course;
+  
 }
 exports.getcourseDetailsById = getcourseDetailsById;
 

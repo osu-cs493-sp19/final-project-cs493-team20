@@ -163,8 +163,8 @@ router.post('/:id/students', requireAuthentication, async (req, res) => {
           try {
             const id = parseInt(req.params.id);
             
-            //todoflag is set for 0 when unenrolling student, 1 when updating student, 2 when creating new student
-            const todoflag = parseInt(req.params.flag);
+            //flag is set for 0 when unenrolling student, 1 when updating student, 2 when creating new student
+            const flag = parseInt(req.params.flag);
             const updateSuccessful = await replaceStudentInCourse(id, req.body, flag);
             if (updateSuccessful) {
               res.status(200).send({
