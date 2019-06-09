@@ -12,6 +12,7 @@ const { UserSchema, insertNewUser, getUserById, validateUser, getUserByEmail } =
  * Create and store a new application User with specified data and adds it to the application's database.  Only an authenticated User with 'admin' role can create users with the 'admin' or 'instructor' roles.
  */
 router.post('/', requireAuthentication, async (req, res) => {
+	console.log(req.body)
     if (validateAgainstSchema(req.body, UserSchema)) {
 		if((req.body.role == 1 || req.body.role == 2) && req.role != 2){
 			res.status(403).send({
