@@ -48,13 +48,13 @@ INSERT INTO `users` VALUES
 UNLOCK TABLES;
 
 --
--- Table structure for table `businesses`
+-- Table structure for table `courses`
 --
 
 DROP TABLE IF EXISTS `courses`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `businesses` (
+CREATE TABLE `courses` (
   `id` mediumint(9) NOT NULL AUTO_INCREMENT,
   `title` varchar(255) NOT NULL,
   `subject` varchar(255) NOT NULL,
@@ -105,7 +105,7 @@ LOCK TABLES `assignments` WRITE;
 /*!40000 ALTER TABLE `assignments` DISABLE KEYS */;
 INSERT INTO `assignments` VALUES
   (1,'Final Project','2019-06-14T17:00:00-07:00',1,200);
-/*!40000 ALTER TABLE `photos` ENABLE KEYS */;
+/*!40000 ALTER TABLE `assignments` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -127,9 +127,9 @@ CREATE TABLE `submissions` (
   KEY `idx_courseid` (`courseid`),
   KEY `idx_assignmentid` (`assignmentid`),
   CONSTRAINT `submissions_ibfk_1` FOREIGN KEY (`studentid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `submissions_ibfk_1` FOREIGN KEY (`courseid`) REFERENCES `courses` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `submissions_ibfk_2` FOREIGN KEY (`assignmentid`) REFERENCES `assignments` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=latin1;
+  CONSTRAINT `submissions_ibfk_2` FOREIGN KEY (`courseid`) REFERENCES `courses` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `submissions_ibfk_3` FOREIGN KEY (`assignmentid`) REFERENCES `assignments` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -140,7 +140,7 @@ LOCK TABLES `submissions` WRITE;
 /*!40000 ALTER TABLE `submissions` DISABLE KEYS */;
 INSERT INTO `submissions` VALUES
   (1,'notarealfile','2019-06-14T17:00:00-07:00',1,1,1);
-/*!40000 ALTER TABLE `reviews` ENABLE KEYS */;
+/*!40000 ALTER TABLE `submissions` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -158,7 +158,7 @@ CREATE TABLE `enrollments` (
   KEY `idx_courseid` (`courseid`),
   KEY `idx_studentid` (`studentid`),
   CONSTRAINT `enrollments_ibfk_1` FOREIGN KEY (`courseid`) REFERENCES `courses` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `enrollments_ibfk_1` FOREIGN KEY (`studentid`) REFERENCES `users` (`id`) ON DELETE CASCADE
+  CONSTRAINT `enrollments_ibfk_2` FOREIGN KEY (`studentid`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -170,7 +170,7 @@ LOCK TABLES `enrollments` WRITE;
 /*!40000 ALTER TABLE `enrollments` DISABLE KEYS */;
 INSERT INTO `enrollments` VALUES
   (1,1,1);
-/*!40000 ALTER TABLE `photos` ENABLE KEYS */;
+/*!40000 ALTER TABLE `enrollments` ENABLE KEYS */;
 UNLOCK TABLES;
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

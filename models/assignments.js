@@ -1,7 +1,6 @@
 const mysqlPool = require('../lib/mysqlPool');
 const { extractValidFields } = require('../lib/validation');
 
-
 /*
  * Schema describing required/optional fields of a Assignment object.
  */
@@ -31,7 +30,7 @@ exports.SubmissionSchema = SubmissionSchema;
 function getAssignmentsCount() {
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'SELECT COUNT(*) AS count FROM Assignments',
+      'SELECT COUNT(*) AS count FROM assignments',
       (err, results) => {
         if (err) {
           reject(err);
@@ -61,7 +60,7 @@ function getAssignmentsPage(page) {
      const offset = (page - 1) * pageSize;
 
     mysqlPool.query(
-      'SELECT * FROM Assignments ORDER BY id LIMIT ?,?',
+      'SELECT * FROM assignments ORDER BY id LIMIT ?,?',
       [ offset, pageSize ],
       (err, results) => {
         if (err) {
@@ -90,7 +89,7 @@ function insertNewAssignment(Assignment) {
     Assignment = extractValidFields(Assignment, AssignmentSchema);
     Assignment.id = null;
     mysqlPool.query(
-      'INSERT INTO Assignments SET ?',
+      'INSERT INTO assignments SET ?',
       Assignment,
       (err, result) => {
         if (err) {
@@ -114,7 +113,7 @@ exports.insertNewAssignment = insertNewAssignment;
 function getAssignmentById(id) {
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'SELECT * FROM Assignments WHERE id = ?',
+      'SELECT * FROM assignments WHERE id = ?',
       [ id ],
       (err, results) => {
         if (err) {
@@ -140,10 +139,10 @@ async function getAssignmentDetailsById(id) {
    * specified Assignment, including its reviews and photos.
    */
   const Assignment = await getAssignmentById(id);
-  if (Assignment) {
+  /*if (Assignment) {
     Assignment.reviews = await getReviewsByAssignmentId(id);
     Assignment.photos = await getPhotosByAssignmentId(id);
-  }
+  }*/
   return Assignment;
 }
 exports.getAssignmentDetailsById = getAssignmentDetailsById;
@@ -158,7 +157,7 @@ function replaceAssignmentById(id, Assignment) {
   return new Promise((resolve, reject) => {
     Assignment = extractValidFields(Assignment, AssignmentSchema);
     mysqlPool.query(
-      'UPDATE Assignments SET ? WHERE id = ?',
+      'UPDATE assignments SET ? WHERE id = ?',
       [ Assignment, id ],
       (err, result) => {
         if (err) {
@@ -180,7 +179,7 @@ exports.replaceAssignmentById = replaceAssignmentById;
 function deleteAssignmentById(id) {
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'DELETE FROM Assignments WHERE id = ?',
+      'DELETE FROM assignments WHERE id = ?',
       [ id ],
       (err, result) => {
         if (err) {
@@ -204,7 +203,7 @@ exports.deleteAssignmentById = deleteAssignmentById;
 function getAssignmentsByOwnerId(id) {
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'SELECT * FROM Assignments WHERE ownerid = ?',
+      'SELECT * FROM assignments WHERE ownerid = ?',
       [ id ],
       (err, results) => {
         if (err) {
@@ -232,7 +231,7 @@ function getSubmissionsPage(page) {
      const offset = (page - 1) * pageSize;
 
     mysqlPool.query(
-      'SELECT * FROM Submissions ORDER BY id LIMIT ?,?',
+      'SELECT * FROM submissions ORDER BY id LIMIT ?,?',
       [ offset, pageSize ],
       (err, results) => {
         if (err) {
@@ -257,7 +256,7 @@ function insertNewSubmission(Submission){
     Assignment = extractValidFields(Submission, SubmissionSchema);
     Submission.id = null;
     mysqlPool.query(
-      'INSERT INTO Submissions SET ?',
+      'INSERT INTO submissions SET ?',
       Submission,
       (err, result) => {
         if (err) {
