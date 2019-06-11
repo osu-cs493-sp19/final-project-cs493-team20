@@ -16,7 +16,8 @@ const {
     getAssignmentesByOwnerdId,
     getSubmissionsPage,
 	getSubmissionsPageByStudentId,
-    insertNewSubmission
+    insertNewSubmission,
+	patchAssignmentById
   } = require('../models/assignments');
 const { getCourseDetailsById, getStudentsInCourse, } = require('../models/courses');
 
@@ -150,12 +151,16 @@ router.get('/:id', async (req, res) => {
 
 
 //We have not worked with a patch request before so I commented this out. I'm not sure if we should create this or not. Please refer to .yaml
-//router.patch('/:id', requireAuthentication, async (req, res) => {
-	/* try{
+router.patch('/:id', requireAuthentication, async (req, res) => {
+	try{
 	const assignment = await getAssignmentById(parseInt(req.params.id))
 	  const course = await getCourseDetailsById(assignment.courseId);
 	  if(req.role == 2 || (req.role == 1 && req.user == course.instructorId)){
-		  
+		  var fieldsToUpdate = {};
+		  for(const field of req.body){
+			  fieldsToUpdate[field.name] = field.value;
+		  }
+		  const patch = await patchAssignmentById(req.params.id, fieldsToUpdate);
 	  } else {
 		  res.status(403).send({
 			error: "User is not authorized to patch this assignment"  
@@ -163,9 +168,12 @@ router.get('/:id', async (req, res) => {
 	  }
 	  
 	} catch (err) {
-		
-	} */
-//});
+		console.error(err);
+        res.status(500).send({
+          error: "Unable to patch assignment.  Please try again later."
+        });
+	}
+});
 
 
 /*

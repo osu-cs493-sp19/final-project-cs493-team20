@@ -322,3 +322,19 @@ function insertNewSubmission(Submission){
   });
 }
 exports.insertNewSubmission = insertNewSubmission;
+
+function patchAssignmentById(id, fields){
+	return new Promise((resolve, reject) => {
+    mysqlPool.query(
+      'UPDATE assignments SET ? WHERE id = ?',
+      [ fields, id ],
+      (err, result) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(result.insertId);
+        }
+      }
+    );
+  });
+}
