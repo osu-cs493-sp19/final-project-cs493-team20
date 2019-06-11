@@ -15,6 +15,7 @@ const {
     deleteAssignmentById,
     getAssignmentesByOwnerdId,
     getSubmissionsPage,
+	getSubmissionsPageByStudentId,
     insertNewSubmission
   } = require('../models/assignments');
 const { getCourseDetailsById, getStudentsInCourse, } = require('../models/courses');
@@ -213,7 +214,12 @@ router.get('/:id/submissions', requireAuthentication, async (req, res, next) => 
 	const assignment = await getAssignmentById(parseInt(req.params.id))
 	const course = await getCourseDetailsById(assignment.courseId);
 	if( req.role == 2 || (req.role == 1 && req.user == course.instructorId)){
-		const coursePage = await getSubmissionsPage(parseInt(req.query.page) || 1);
+		var coursePage = {};
+		if(req.query.studentid){
+			coursePage = await getSubmissionsPageByStudentId(parseInt(req.query.page) || 1, assignment.id, req.query.studentid);
+		} else {
+			coursePage = await getSubmissionsPage(parseInt(req.query.page) || 1, assignment.id);
+		}
 		coursePage.links = {};
 		if (coursePage.page < coursePage.totalPages) {
 		  coursePage.links.nextPage = `/submissions?page=${coursePage.page + 1}`;

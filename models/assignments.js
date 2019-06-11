@@ -235,7 +235,7 @@ function getAssignmentsByOwnerId(id) {
 }
 exports.getAssignmentsByOwnerId = getAssignmentsByOwnerId;
 
-function getSubmissionsPage(page) {
+function getSubmissionsPage(page, id) {
   return new Promise(async (resolve, reject) => {
     /*
      * Compute last page number and make sure page is within allowed bounds.
@@ -249,8 +249,8 @@ function getSubmissionsPage(page) {
      const offset = (page - 1) * pageSize;
 
     mysqlPool.query(
-      'SELECT * FROM submissions ORDER BY id LIMIT ?,?',
-      [ offset, pageSize ],
+      'SELECT * FROM submissions WHERE assignmentid = ? ORDER BY id LIMIT ?,?',
+      [ id, offset, pageSize ],
       (err, results) => {
         if (err) {
           reject(err);
@@ -268,6 +268,41 @@ function getSubmissionsPage(page) {
   });
 }
 exports.getSubmissionsPage = getSubmissionsPage;
+
+function getSubmissionsPageByStudentId(page, id, studentid) {
+  return new Promise(async (resolve, reject) => {
+    /*
+     * Compute last page number and make sure page is within allowed bounds.
+     * Compute offset into collection.
+     */
+     const count = await getAssignmentsCount();
+     const pageSize = 10;
+     const lastPage = Math.ceil(count / pageSize);
+     page = page > lastPage ? lastPage : page;
+     page = page < 1 ? 1 : page;
+     const offset = (page - 1) * pageSize;
+
+    mysqlPool.query(
+      'SELECT * FROM submissions WHERE assignmentid = ? AND studentid = ? ORDER BY id LIMIT ?,?',
+      [ id, studentid, offset, pageSize ],
+      (err, results) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({
+            Assignments: results,
+            page: page,
+            totalPages: lastPage,
+            pageSize: pageSize,
+            count: count
+          });
+        }
+      }
+    );
+  });
+}
+exports.getSubmissionsPage = getSubmissionsPage;
+
 
 function insertNewSubmission(Submission){
   return new Promise((resolve, reject) => {
