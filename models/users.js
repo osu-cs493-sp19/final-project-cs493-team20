@@ -5,8 +5,10 @@ const bcrypt = require('bcryptjs');
  * Schema describing required/optional fields of a User object.
  */
 const UserSchema = {
-  name: { required: true },
-  address: { required: true }
+  role:     { required: true },
+  name:     { required: true },
+  email:    { required: true },  
+  password: { required: true }  
   //fill in the rest
 };
 exports.UserSchema = UserSchema;
@@ -231,8 +233,15 @@ exports.getAdmin = getAdmin;
 
 //validates user password matches the one they provided
 async function validateUser (email, password) {
+  console.log("validating:")
+  console.log(email)
+  console.log(password)
   const user = await getUserByEmail(email);
-  const authenticated = user && await bcrypt.compare(password, user.password);
+  console.log(user.password)
+  password_match = await bcrypt.compare(password, user.password)
+  console.log(user)
+  console.log(password_match)
+  const authenticated = user && password_match;
   return authenticated;
 }
 exports.validateUser = validateUser;

@@ -5,19 +5,28 @@ const { extractValidFields } = require('../lib/validation');
  * Schema describing required/optional fields of a Assignment object.
  */
 const AssignmentSchema = {
-  name: { required: true },
-  address: { required: true },
-  courseId: { required: true}
+  title: { required: true },
+  duedate: { required: true },
+  courseid: { required: true},
+  points: { required: true}
   //fill in the rest
 };
 exports.AssignmentSchema = AssignmentSchema;
 
 /*
  * Schema describing required/optional fields of a Submission object.
+  `file` varchar(255) NOT NULL,
+  `timestamp` varchar(255) NOT NULL,
+  `courseid` mediumint(9) NOT NULL,
+  `studentid` mediumint(9) NOT NULL,
+  `assignmentid` mediumint(9) NOT NULL,
  */
 const SubmissionSchema = {
-  name: { required: true },
-  address: { required: true },
+  file: { required: true },
+  timestamp: { required: true },
+  courseid: { required: true },
+  studentid: { required: true },
+  assignmentid: { required: true },
   //fill in the rest
 };
 exports.SubmissionSchema = SubmissionSchema;
@@ -125,6 +134,7 @@ function getAssignmentById(id) {
     );
   });
 }
+exports.getAssignmentById = getAssignmentById
 ///////////////////////////////////FIX/////////////////////////////////////////////////////////
 /*
  * Executes a MySQL query to fetch detailed information about a single

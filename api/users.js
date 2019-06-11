@@ -77,6 +77,7 @@ router.post('/login', async (req, res) => {
  * If the User has the 'student' role, the response should include a list of the IDs of the Courses the User is enrolled in.  Only an authenticated User whose ID matches the ID of the requested User can fetch this information.
  */
 router.get('/:id', requireAuthentication, async (req, res) => {
+	
     if (req.params.id == req.user) {
         try {
           const user = await getUserById(req.params.id);

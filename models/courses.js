@@ -4,10 +4,20 @@ const { extractValidFields } = require('../lib/validation');
 
 /*
  * Schema describing required/optional fields of a course object.
+
+   `id` mediumint(9) NOT NULL AUTO_INCREMENT,
+   `title` varchar(255) NOT NULL,
+   `subject` varchar(255) NOT NULL,
+   `number` varchar(255) NOT NULL,
+   `instructorid` mediumint(9) NOT NULL,
+   `term` varchar(255) NOT NULL, 
  */
 const courseSchema = {
-  name: { required: true },
-  address: { required: true },
+  title: { required: true },
+  subject: { required: true },
+  number: { required: true },
+  instructorid: { required: true },
+  term: { required: true },
   //fill in the rest
 };
 exports.courseSchema = courseSchema;
@@ -24,13 +34,14 @@ exports.studentSchema = studentSchema;
 
 
 /*
- * Executes a MySQL query to fetch the total number of Courses.  Returns
+ * Executes a MySQL query to fetch the total number of 
+ .  Returns
  * a Promise that resolves to this count.
  */
 function getCoursesCount() {
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'SELECT COUNT(*) AS count FROM Courses',
+      'SELECT COUNT(*) AS count FROM courses',
       (err, results) => {
         if (err) {
           reject(err);
@@ -60,7 +71,7 @@ function getCoursesPage(page) {
      const offset = (page - 1) * pageSize;
 
     mysqlPool.query(
-      'SELECT * FROM Courses ORDER BY id LIMIT ?,?',
+      'SELECT * FROM courses ORDER BY id LIMIT ?,?',
       [ offset, pageSize ],
       (err, results) => {
         if (err) {
@@ -89,7 +100,7 @@ function insertNewcourse(course) {
     course = extractValidFields(course, courseSchema);
     course.id = null;
     mysqlPool.query(
-      'INSERT INTO Courses SET ?',
+      'INSERT INTO courses SET ?',
       course,
       (err, result) => {
         if (err) {
@@ -110,10 +121,10 @@ exports.insertNewcourse = insertNewcourse;
  * information about the requested course.  If no course with the
  * specified ID exists, the returned Promise will resolve to null.
  */
-function getcourseById(id) {
+function getCourseById(id) {
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'SELECT * FROM Courses WHERE id = ?',
+      'SELECT * FROM courses WHERE id = ?',
       [ id ],
       (err, results) => {
         if (err) {
@@ -126,16 +137,16 @@ function getcourseById(id) {
   });
 }
 
-
+exports.getCourseById = getCourseById
 //////////////////////// FIX THIS ONE ////////////////////////////////////////////////////
 /*
  * Executes a MySQL query to fetch detailed information about a single
  * specified course based on its ID, 
  */
-async function getcourseDetailsById(id) {
+async function getCourseDetailsById(id) {
   
 }
-exports.getcourseDetailsById = getcourseDetailsById;
+exports.getCourseDetailsById = getCourseDetailsById;
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /*
@@ -147,7 +158,7 @@ function replacecourseById(id, course) {
   return new Promise((resolve, reject) => {
     course = extractValidFields(course, courseSchema);
     mysqlPool.query(
-      'UPDATE Courses SET ? WHERE id = ?',
+      'UPDATE courses SET ? WHERE id = ?',
       [ course, id ],
       (err, result) => {
         if (err) {
@@ -169,7 +180,7 @@ exports.replacecourseById = replacecourseById;
 function deletecourseById(id) {
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'DELETE FROM Courses WHERE id = ?',
+      'DELETE FROM courses WHERE id = ?',
       [ id ],
       (err, result) => {
         if (err) {
@@ -193,7 +204,7 @@ exports.deletecourseById = deletecourseById;
 function getCoursesByOwnerId(id) {
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'SELECT * FROM Courses WHERE ownerid = ?',
+      'SELECT * FROM courses WHERE ownerid = ?',
       [ id ],
       (err, results) => {
         if (err) {
@@ -217,7 +228,7 @@ function replaceStudentInCourse(id, student, flag){
   if (flag == 0){
     return new Promise((resolve, reject) => {
       mysqlPool.query(
-        'DELETE FROM Students WHERE id = ?',
+        'DELETE FROM students WHERE id = ?',
         [ id ],
         (err, result) => {
           if (err) {
@@ -234,7 +245,7 @@ function replaceStudentInCourse(id, student, flag){
     return new Promise((resolve, reject) => {
       student = extractValidFields(student, studentSchema);
       mysqlPool.query(
-        'UPDATE Students SET ? WHERE id = ?',
+        'UPDATE students SET ? WHERE id = ?',
         [ student, id ],
         (err, result) => {
           if (err) {
@@ -252,7 +263,7 @@ function replaceStudentInCourse(id, student, flag){
       student = extractValidFields(student, studentSchema);
       student.id = null;
       mysqlPool.query(
-        'INSERT INTO Students SET ?',
+        'INSERT INTO students SET ?',
         student,
         (err, result) => {
           if (err) {
@@ -270,7 +281,7 @@ exports.replaceStudentInCourse = replaceStudentInCourse;
 function getStudentsInCourse(id){
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'SELECT * FROM Students WHERE courseid = ?',
+      'SELECT * FROM students WHERE courseid = ?',
       [ id ],
       (err, results) => {
         if (err) {
@@ -287,7 +298,7 @@ exports.getStudentsInCourse = getStudentsInCourse;
 function getStudentsInCourseCSV(id){
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'SELECT * FROM Students WHERE courseid = ?',
+      'SELECT * FROM students WHERE courseid = ?',
       [ id ],
       (err, results) => {
         if (err) {
