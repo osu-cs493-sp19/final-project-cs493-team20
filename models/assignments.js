@@ -22,7 +22,7 @@ exports.AssignmentSchema = AssignmentSchema;
   `assignmentid` mediumint(9) NOT NULL,
  */
 const SubmissionSchema = {
-  file: { required: true },
+  //file: { required: true },
   timestamp: { required: true },
   courseid: { required: true },
   studentid: { required: true },
@@ -31,6 +31,14 @@ const SubmissionSchema = {
 };
 exports.SubmissionSchema = SubmissionSchema;
 
+const SubmissionSchemaFinal = {
+  file: { required: true },
+  timestamp: { required: true },
+  courseid: { required: true },
+  studentid: { required: true },
+  assignmentid: { required: true },
+  //fill in the rest
+};
 
 /*
  * Executes a MySQL query to fetch the total number of Assignments.  Returns
@@ -263,7 +271,7 @@ exports.getSubmissionsPage = getSubmissionsPage;
 
 function insertNewSubmission(Submission){
   return new Promise((resolve, reject) => {
-    Assignment = extractValidFields(Submission, SubmissionSchema);
+    Assignment = extractValidFields(Submission, SubmissionSchemaFinal);
     Submission.id = null;
     mysqlPool.query(
       'INSERT INTO submissions SET ?',

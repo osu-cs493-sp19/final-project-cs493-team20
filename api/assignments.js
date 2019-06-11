@@ -1,4 +1,7 @@
 const router = require('express').Router();
+const multer = require('multer');
+const fs = require('fs');
+const crypto = require('crypto');
 const { generateAuthToken, requireAuthentication } = require('../lib/auth');
 const { validateAgainstSchema } = require('../lib/validation');
 const {
@@ -16,7 +19,25 @@ const {
   } = require('../models/assignments');
 const { getCourseDetailsById, getStudentsInCourse, } = require('../models/courses');
 
+const upload = multer({
+  storage: multer.diskStorage({
+	destination: `${__dirname}/uploads`,
+	filename: (req, file, callback) => {
+      const basename = crypto.pseudoRandomBytes(16).toString('hex');
+      const extension = imageTypes[file.mimetype];
+      callback(null, `${basename}.${extension}`);
+	}
+  }),
+  fileFilter: (req, file, callback) => {
+	  callback(null, !!imageTypes[file.mimetype])
+  }
+});
 
+const imageTypes = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'application': 'pdf'
+};
 
 /*
  * Create a new Submission for an Assignment.
@@ -24,17 +45,26 @@ const { getCourseDetailsById, getStudentsInCourse, } = require('../models/course
  *  Create and store a new Assignment with specified data and adds it to the application's database.  Only an authenticated User with 'student' role 
  *  who is enrolled in the Course corresponding to the Assignment's `courseId` can create a Submission.
  */
-router.post('/:id/submissions', requireAuthentication, async (req, res) => {
-	if (validateAgainstSchema(req.body, SubmissionSchema)) {
+router.post('/:id/submissions', requireAuthentication, upload.single('file'), async (req, res) => {
+	if (req.file && validateAgainstSchema(req.body, SubmissionSchema)) {
 	  try {
 		const assignment = await getAssignmentById(parseInt(req.params.id))
 		var students = await getStudentsInCourse(assignment.courseId);
 		if(students.includes(req.user)){
-			const id = await insertNewSubmission(req.body);
+			const submission = {
+			  contentType: req.file.mimetype,
+			  file: req.file.filename,
+			  path: req.file.path,
+			  timestamp: Date.now(),
+			  courseid: req.body.courseid,
+			  studentid: req.body.studentid,
+			  assignmentid: req.params.id
+			};
+			const id = await insertNewSubmission(submission);
 			res.status(201).send({
 			  id: id,
 			  links: {
-				assignment: `/assignments/${id}`
+				assignment: `/media/submissions/${submission.filename}`
 			  }
 			});
 		} else {
@@ -208,5 +238,9 @@ router.get('/:id/submissions', requireAuthentication, async (req, res, next) => 
   }
 });
 
+/*
+Provide download
+*/
+app.use('/media/submissions', express.static(`${__dirname}/uploads`));
 
 module.exports = router;
