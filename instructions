@@ -5,7 +5,7 @@ sudo docker-compose up --force-recreate
 associated commands:
 	users
 		post /login
-			curl --header "Content-Type: application/json" -d "{\"email\": \"admin@businesses.com\", \"password\":\"hunter2\"}" http://localhost:8003/users/login			
+			curl --header "Content-Type: application/json" -d "{\"email\": \"admin@businesses.com\", \"password\":\"hunter2\"}" http://localhost:8000/users/login			
 			save as bash variable: TOKEN=TOKEN_CONTENTS
 			notes:
 				you get /users/login: "invalid authentication token" if you put in wrong credentials
