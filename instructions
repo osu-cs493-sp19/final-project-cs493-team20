@@ -1,0 +1,99 @@
+
+sudo docker-compose build --no-cache
+sudo docker-compose up --force-recreate
+
+associated commands:
+	users
+		post /login
+			curl --header "Content-Type: application/json" -d "{\"email\": \"admin@businesses.com\", \"password\":\"hunter2\"}" http://localhost:8003/users/login			
+			save as bash variable: TOKEN=TOKEN_CONTENTS
+			notes:
+				you get /users/login: "invalid authentication token" if you put in wrong credentials
+				example token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBidXNpbmVzc2VzLmNvbSIsInJvbGUiOjIsImlhdCI6MTU2MDExMzcxMywiZXhwIjoxNTYwMjAwMTEzfQ.TvAnnfRp0oHuIHsUDI1zyEzJ87hQ113RTAW00o6Ug4k			
+		post /			
+			curl POST -v -d "{\"name\":\"user_name\", \"address\":\"user_address\"}" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8003/users
+			ER_BAD_FIELD_ERROR: Unknown column 'address' in 'field list'			
+		get /id
+			curl GET -v -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8003/users/1
+				{"error":"Unauthorized to access the specified resource"}
+			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8003/users/1
+				{"error":"Unauthorized to access the specified resource"}
+			
+	assignments
+		post / 
+			curl POST -v -d "{\"name\":\"user_name\", \"address\":\"user_address\", \"courseID\":\"course_id\"}" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8003/assignments
+			(node:17) UnhandledPromiseRejectionWarning: TypeError: Cannot convert undefined or null to object
+			* upload completely sent off: 70 out of 70 bytes									
+		get /id			
+			http://localhost:8003/assignments/1 
+			or
+			curl -X GET -d "" -H "Content-Type: application/json" http://localhost:8003/assignments/1
+
+		delete /id
+			curl -X DELETE -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8003/assignments/1
+			ReferenceError: getAssignmentById is not defined
+			
+		get /id/submissions
+			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8003/assignments/1/submissions
+			{"error":"Error fetching submission list.  Please try again later."}
+			ReferenceError: getAssignmentById is not defined			
+		post /id/submissions
+			curl POST -v -d "{\"name\":\"user_name\", \"address\":\"user_address\"}" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8003/assignemtns/1/submissions
+			upload completely sent off: 46 out of 46 bytes
+			(node:17) UnhandledPromiseRejectionWarning: TypeError: Cannot convert undefined or null to object
+			
+			
+	courses
+		get /
+			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8003/courses			
+			(node:17) UnhandledPromiseRejectionWarning: Error: ER_NO_SUCH_TABLE: Table 'businesses.Courses' doesn't exist		
+			hangs
+		post /
+			curl POST -v -d "{\"name\":\"user_name\", \"address\":\"user_address\"}" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8003/courses
+			{"error":"Error inserting course into DB.  Please try again later."}
+			TypeError: insertNewCourse is not a function			
+		get /id
+			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8003/courses/1			
+			TypeError: getCourseDetailsById is not a function		
+		delete /id
+			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8003/courses/1			
+			TypeError: deleteCourseById is not a function
+			
+		get /id/students
+			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8003/courses/1/students
+			ReferenceError: getcourseById is not defined
+			
+		post /id/students
+			curl POST -v -d "{\"name\":\"user_name\", \"address\":\"user_address\"}" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8003/courses/1/students
+			{"error":"Unable to update specified enrollment.  Please try again later."}
+			getcourseById is not defined
+									
+		get /id/rosters
+			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8003/courses/0/rosters			
+			ReferenceError: getAssignmentsByCourseID is not defined
+			
+		get /id/assignments
+			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8003/courses/1/assignments			
+			ReferenceError: getAssignmentsByCourseID is not defined
+							
+
+for reference, list of all the end points:
+	assignments
+		post / 
+		get /id
+		delete /id
+		get /id/submissions
+		post /id/submissions
+	courses
+		get /
+		post /
+		get /id
+		delete /id
+		get /id/students
+		post /id/students
+		get /id/rosters
+		get /id/assignments
+	users
+		post /
+		post /login
+		get /id
