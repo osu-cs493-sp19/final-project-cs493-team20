@@ -12,6 +12,7 @@ const { UserSchema, insertNewUser, getUserById, validateUser, getUserByEmail } =
  * Create and store a new application User with specified data and adds it to the application's database.  Only an authenticated User with 'admin' role can create users with the 'admin' or 'instructor' roles.
  */
 router.post('/', requireAuthentication, async (req, res) => {
+	console.log(req.body)
     if (validateAgainstSchema(req.body, UserSchema)) {
 		if((req.body.role == 1 || req.body.role == 2) && req.role != 2){
 			res.status(403).send({
@@ -76,6 +77,7 @@ router.post('/login', async (req, res) => {
  * If the User has the 'student' role, the response should include a list of the IDs of the Courses the User is enrolled in.  Only an authenticated User whose ID matches the ID of the requested User can fetch this information.
  */
 router.get('/:id', requireAuthentication, async (req, res) => {
+	
     if (req.params.id == req.user) {
         try {
           const user = await getUserById(req.params.id);

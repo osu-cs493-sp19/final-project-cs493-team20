@@ -5,10 +5,8 @@ const bcrypt = require('bcryptjs');
  * Schema describing required/optional fields of a User object.
  */
 const UserSchema = {
-  role:     { required: true },
-  name:     { required: true },
-  email:    { required: true },  
-  password: { required: true }  
+  name: { required: true },
+  address: { required: true }
   //fill in the rest
 };
 exports.UserSchema = UserSchema;
@@ -18,10 +16,11 @@ exports.UserSchema = UserSchema;
  * Executes a MySQL query to fetch the total number of Users.  Returns
  * a Promise that resolves to this count.
  */
-function getUsersCount() {
+function get
+sCount() {
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'SELECT COUNT(*) AS count FROM users',
+      'SELECT COUNT(*) AS count FROM Users',
       (err, results) => {
         if (err) {
           reject(err);
@@ -51,7 +50,7 @@ function getUsersPage(page) {
      const offset = (page - 1) * pageSize;
 
     mysqlPool.query(
-      'SELECT * FROM users ORDER BY id LIMIT ?,?',
+      'SELECT * FROM Users ORDER BY id LIMIT ?,?',
       [ offset, pageSize ],
       (err, results) => {
         if (err) {
@@ -80,7 +79,7 @@ function insertNewUser(User) {
     User = extractValidFields(User, UserSchema);
     User.id = null;
     mysqlPool.query(
-      'INSERT INTO users SET ?',
+      'INSERT INTO Users SET ?',
       User,
       (err, result) => {
         if (err) {
@@ -104,7 +103,7 @@ exports.insertNewUser = insertNewUser;
 function getUserById(id) {
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'SELECT * FROM users WHERE id = ?',
+      'SELECT * FROM Users WHERE id = ?',
       [ id ],
       (err, results) => {
         if (err) {
@@ -147,7 +146,7 @@ function replaceUserById(id, User) {
   return new Promise((resolve, reject) => {
     User = extractValidFields(User, UserSchema);
     mysqlPool.query(
-      'UPDATE users SET ? WHERE id = ?',
+      'UPDATE Users SET ? WHERE id = ?',
       [ User, id ],
       (err, result) => {
         if (err) {
@@ -169,7 +168,7 @@ exports.replaceUserById = replaceUserById;
 function deleteUserById(id) {
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'DELETE FROM users WHERE id = ?',
+      'DELETE FROM Users WHERE id = ?',
       [ id ],
       (err, result) => {
         if (err) {
@@ -193,7 +192,7 @@ exports.deleteUserById = deleteUserById;
 function getUsersByOwnerId(id) {
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'SELECT * FROM users WHERE ownerid = ?',
+      'SELECT * FROM Users WHERE ownerid = ?',
       [ id ],
       (err, results) => {
         if (err) {
@@ -233,15 +232,8 @@ exports.getAdmin = getAdmin;
 
 //validates user password matches the one they provided
 async function validateUser (email, password) {
-  console.log("validating:")
-  console.log(email)
-  console.log(password)
   const user = await getUserByEmail(email);
-  console.log(user.password)
-  password_match = await bcrypt.compare(password, user.password)
-  console.log(user)
-  console.log(password_match)
-  const authenticated = user && password_match;
+  const authenticated = user && await bcrypt.compare(password, user.password);
   return authenticated;
 }
 exports.validateUser = validateUser;

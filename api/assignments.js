@@ -2,9 +2,11 @@ const router = require('express').Router();
 const { generateAuthToken, requireAuthentication } = require('../lib/auth');
 const { validateAgainstSchema } = require('../lib/validation');
 const {
-    assignmentSchema,
+    AssignmentSchema,
+    SubmissionSchema,    
     getAssignmentsPage,
     insertNewAssignment,
+    getAssignmentById,
     getAssignmentDetailsById,
     replaceAssignmentById,
     deleteAssignmentById,
@@ -12,8 +14,46 @@ const {
     getSubmissionsPage,
     insertNewSubmission
   } = require('../models/assignments');
-const { getCourseDetailsById } = require('../models/courses');
+const { getCourseDetailsById, getStudentsInCourse, } = require('../models/courses');
 
+
+
+/*
+ * Create a new Submission for an Assignment.
+ *
+ *  Create and store a new Assignment with specified data and adds it to the application's database.  Only an authenticated User with 'student' role 
+ *  who is enrolled in the Course corresponding to the Assignment's `courseId` can create a Submission.
+ */
+router.post('/:id/submissions', requireAuthentication, async (req, res) => {
+	if (validateAgainstSchema(req.body, SubmissionSchema)) {
+	  try {
+		const assignment = await getAssignmentById(parseInt(req.params.id))
+		var students = await getStudentsInCourse(assignment.courseId);
+		if(students.includes(req.user)){
+			const id = await insertNewSubmission(req.body);
+			res.status(201).send({
+			  id: id,
+			  links: {
+				assignment: `/assignments/${id}`
+			  }
+			});
+		} else {
+			res.status(403).send({
+				error: "User is not authorized to submit assignments for this course"
+			})
+		}
+	  } catch (err) {
+		console.error(err);
+		res.status(500).send({
+		  error: "Error inserting submission into DB.  Please try again later."
+		});
+	  }
+	} else {
+	  res.status(400).send({
+		error: "Request body is not a valid submission object."
+	  });
+	}
+});
 
 /*
  * Create a new Assignment.
@@ -22,7 +62,10 @@ const { getCourseDetailsById } = require('../models/courses');
  * with 'admin' role or an authenticated 'instructor' User whose ID matches the `instructorId` of the Course corresponding to the Assignment's `courseId` can create an Assignment.
  */
 router.post('/', requireAuthentication, async (req, res) => {
-	if (validateAgainstSchema(req.body, assignmentSchema)) {
+	console.log("posting assignment:")
+	console.log(req.body)
+	if (validateAgainstSchema(req.body, AssignmentSchema)) {
+		console.log("validated")
 	  try {
 		const course = await getCourseDetailsById(parseInt(req.body.courseId));  
 		if(req.role == 2 || ( req.role == 1 && req.user == course.instructorId)){
@@ -150,7 +193,8 @@ router.get('/:id/submissions', requireAuthentication, async (req, res, next) => 
 		  coursePage.links.prevPage = `/submissions?page=${coursePage.page - 1}`;
 		  coursePage.links.firstPage = '/submissions?page=1';
 		}
-		res.status(200).send(submissionPage);
+		//res.status(200).send(submissionPage);
+		res.status(200).send(coursePage);
 	} else {
 		res.status(403).send({
 			error: "User is not authenticated to fetch the list of submissions" 
@@ -164,42 +208,5 @@ router.get('/:id/submissions', requireAuthentication, async (req, res, next) => 
   }
 });
 
-
-/*
- * Create a new Submission for an Assignment.
- *
- *  Create and store a new Assignment with specified data and adds it to the application's database.  Only an authenticated User with 'student' role 
- *  who is enrolled in the Course corresponding to the Assignment's `courseId` can create a Submission.
- */
-router.post('/:id/submissions', requireAuthentication, async (req, res) => {
-	if (validateAgainstSchema(req.body, assignmentSchema)) {
-	  try {
-		const assignment = await getAssignmentById(parseInt(req.params.id))
-		var students = await getStudentsInCourse(assignment.courseId);
-		if(students.includes(req.user)){
-			const id = await insertNewSubmission(req.body);
-			res.status(201).send({
-			  id: id,
-			  links: {
-				assignment: `/assignments/${id}`
-			  }
-			});
-		} else {
-			res.status(403).send({
-				error: "User is not authorized to submit assignments for this course"
-			})
-		}
-	  } catch (err) {
-		console.error(err);
-		res.status(500).send({
-		  error: "Error inserting submission into DB.  Please try again later."
-		});
-	  }
-	} else {
-	  res.status(400).send({
-		error: "Request body is not a valid submission object."
-	  });
-	}
-});
 
 module.exports = router;
