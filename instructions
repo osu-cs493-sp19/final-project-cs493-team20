@@ -73,7 +73,7 @@ associated commands:
 			ReferenceError: getAssignmentsByCourseID is not defined
 			
 		get /id/assignments
-			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8003/courses/1/assignments			
+			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/courses/1/assignments			
 			ReferenceError: getAssignmentsByCourseID is not defined
 							
 
