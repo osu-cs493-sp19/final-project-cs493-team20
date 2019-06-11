@@ -49,7 +49,7 @@ router.get('/', async (req, res, next) => {
  * Creates a new Course with specified data and adds it to the application's database.  Only an authenticated User with 'admin' role can create a new Course.
  */
 router.post('/', requireAuthentication, async (req, res) => {
-    if (req.role == 2) {
+    if (req.role == 0) {
         if (validateAgainstSchema(req.body, courseSchema)) {
           try {
             const id = await insertNewCourse(req.body);
@@ -106,7 +106,7 @@ router.get('/:id', async (req, res, next) => {
  * Completely removes the data for the specified Course, including all enrolled students, all Assignments, etc.  Only an authenticated User with 'admin' role can remove a Course.
  */
 router.delete('/:id', requireAuthentication, async (req, res, next) => {
-    if (req.role == 2) {
+    if (req.role == 0) {
         try {
           const deleteSuccessful = await deleteCourseById(parseInt(req.params.id));
           if (deleteSuccessful) {
@@ -138,7 +138,7 @@ router.get('/:id/students', requireAuthentication, async (req, res, next) => {
     try {
 		const courseInfo = await getcourseById(req.params.id);
         const course = await getStudentsInCourse(parseInt(req.params.id));
-		if(req.role == 2 || (req.role == 1 && req.user == courseInfo.instructorId)){
+		if(req.role == 0 || (req.role == 1 && req.user == courseInfo.instructorId)){
 			if (course) {
 			  res.status(200).send(course);
 			} else {
@@ -169,7 +169,7 @@ router.post('/:id/students', requireAuthentication, async (req, res) => {
 	  try {
 		const id = parseInt(req.params.id);
 		const courseInfo = await getcourseById(req.params.id);
-		if(req.role == 2 || (req.role == 1 && req.user == courseInfo.instructorId)){
+		if(req.role == 0 || (req.role == 1 && req.user == courseInfo.instructorId)){
 			//flag is set for 0 when unenrolling student, 1 when updating student, 2 when creating new student
 			const flag = parseInt(req.params.flag);
 			const updateSuccessful = await replaceStudentInCourse(id, req.body, flag);
@@ -211,7 +211,7 @@ router.post('/:id/students', requireAuthentication, async (req, res) => {
 router.get('/:id/roster', requireAuthentication, async (req, res, next) => {
     try {
 		const courseInfo = await getcourseById(req.params.id);
-		if(req.role == 2 || (req.role == 1 && req.user == courseInfo.instructorId)){
+		if(req.role == 0 || (req.role == 1 && req.user == courseInfo.instructorId)){
 			const course = await getStudentsInCourseCSV(parseInt(req.params.id));
 			if (course) {
 			  res.status(200).send(course);

@@ -78,6 +78,8 @@ exports.getUsersPage = getUsersPage;
 function insertNewUser(User) {
   return new Promise((resolve, reject) => {
     User = extractValidFields(User, UserSchema);
+	const passwordHash = await bcrypt.hash(User.password, 8);
+	User.password = passwordHash;
     User.id = null;
     mysqlPool.query(
       'INSERT INTO users SET ?',

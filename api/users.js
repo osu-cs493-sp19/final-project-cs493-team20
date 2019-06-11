@@ -14,9 +14,9 @@ const { UserSchema, insertNewUser, getUserById, validateUser, getUserByEmail } =
 router.post('/', requireAuthentication, async (req, res) => {
 	console.log(req.body)
     if (validateAgainstSchema(req.body, UserSchema)) {
-		if((req.body.role == 1 || req.body.role == 2) && req.role != 2){
+		if((req.body.role == 1 || req.body.role == 2) && req.role != 0){
 			res.status(403).send({
-				error: "The request was not made by an authenticated User of the admin role."
+				error: "The request was not made by an authenticated User satisfying the authorization criteria described above."
 			});
 		}else {
 			try {
@@ -33,7 +33,7 @@ router.post('/', requireAuthentication, async (req, res) => {
 		}
     } else {
 		res.status(400).send({
-          error: "Request body does not contain a valid User."
+          error: "The request body was either not present or did not contain a valid User object."
         });
     }
 });
@@ -55,18 +55,18 @@ router.post('/login', async (req, res) => {
             });
           } else {
             res.status(401).send({
-              error: "Invalid credentials"
+              error: "The specified credentials were invalid."
             });
           }
         } catch (err) {
 			console.log(err)
           res.status(500).send({
-            error: "Error validating user.  Try again later."
+            error: "An internal server error occurred."
           });
         }
       } else {
         res.status(400).send({
-          error: "Request body was invalid"
+          error: "The request body was either not present or did not contain all of the required fields."
         });
       }
 });
@@ -78,13 +78,15 @@ router.post('/login', async (req, res) => {
  */
 router.get('/:id', requireAuthentication, async (req, res) => {
 	
-    if (req.params.id == req.user) {
+    if (req.role == 0 || req.params.id == req.user) {
         try {
           const user = await getUserById(req.params.id);
           if (user) {
             res.status(200).send(user);
           } else {
-            next();
+            res.status(404).send({
+				error: "Specified Course `id` not found."
+			})
           }
         } catch (err) {
           console.error("  -- Error:", err);
@@ -94,7 +96,7 @@ router.get('/:id', requireAuthentication, async (req, res) => {
         }
       } else {
         res.status(403).send({
-          error: "Unauthorized to access the specified resource"
+          error: "The request was not made by an authenticated User satisfying the authorization criteria described above."
         });
       }
 });
