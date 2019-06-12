@@ -53,11 +53,12 @@ router.post('/:id/submissions', requireAuthentication, upload.single('file'), as
 	  try {
 		const assignment = await getAssignmentById(parseInt(req.params.id))
 		var students = await getStudentsInCourse(assignment.courseId);
-		if(students.includes(req.user)){
+		console.log(req.user);
+		if(students.includes(req.user) || req.user == 0){
 			const submission = {
-			  contentType: req.file.mimetype,
+			  //contentType: req.file.mimetype,
 			  file: req.file.filename,
-			  path: req.file.path,
+			  //path: req.file.path,
 			  timestamp: Date.now(),
 			  courseid: req.body.courseid,
 			  studentid: req.body.studentid,
@@ -67,7 +68,7 @@ router.post('/:id/submissions', requireAuthentication, upload.single('file'), as
 			res.status(201).send({
 			  id: id,
 			  links: {
-				assignment: `/media/submissions/${submission.filename}`
+				assignment: `/media/submissions/${submission.file}`
 			  }
 			});
 		} else {
@@ -157,15 +158,20 @@ router.patch('/:id', requireAuthentication, async (req, res) => {
 	const assignment = await getAssignmentById(parseInt(req.params.id))
 	  const course = await getCourseDetailsById(assignment.courseId);
 	  if(req.role == 2 || (req.role == 1 && req.user == course.instructorId)){
-		  const updateObj = req.body;
-		  
+		  console.log(req.body);
+		  let obj = req.body;
+		  let updateObj = {};
+		  Object.req.body.forEach((field) => {
+			updateObj[field] = obj[field];
+		  });
+		  /*
 		  var fieldsToUpdate = {};
-		  for(const field of updateObj){
+		  for(const field of req.body){
 			  fieldsToUpdate[field.name] = field.value;
 		  }
-		  
+		  */
 		  //const updateObj = req.body;
-		  const patch = await patchAssignmentById(req.params.id, req.body);
+		  const patch = await patchAssignmentById(req.params.id, updateObj);
 	  } else {
 		  res.status(403).send({
 			error: "User is not authorized to patch this assignment"  
@@ -194,7 +200,9 @@ router.delete('/:id', requireAuthentication, async (req, res, next) => {
 	  if( req.role == 2 || (req.role == 1 && req.user == course.instructorId)){
 		  const deleteSuccessful = await deleteAssignmentById(parseInt(req.params.id));
 		  if (deleteSuccessful) {
-			res.status(204).end();
+			res.status(204).send({
+				err: "Success"
+			});
 		  } else {
 			next();
 		  }
