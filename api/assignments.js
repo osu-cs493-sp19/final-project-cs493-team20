@@ -157,11 +157,15 @@ router.patch('/:id', requireAuthentication, async (req, res) => {
 	const assignment = await getAssignmentById(parseInt(req.params.id))
 	  const course = await getCourseDetailsById(assignment.courseId);
 	  if(req.role == 2 || (req.role == 1 && req.user == course.instructorId)){
+		  const updateObj = req.body;
+		  
 		  var fieldsToUpdate = {};
-		  for(const field of req.body){
+		  for(const field of updateObj){
 			  fieldsToUpdate[field.name] = field.value;
 		  }
-		  const patch = await patchAssignmentById(req.params.id, fieldsToUpdate);
+		  
+		  //const updateObj = req.body;
+		  const patch = await patchAssignmentById(req.params.id, req.body);
 	  } else {
 		  res.status(403).send({
 			error: "User is not authorized to patch this assignment"  

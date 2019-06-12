@@ -338,3 +338,4 @@ function patchAssignmentById(id, fields){
     );
   });
 }
+exports.patchAssignmentById = patchAssignmentById;
