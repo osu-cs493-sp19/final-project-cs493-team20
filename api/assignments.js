@@ -20,7 +20,7 @@ const {
     insertNewSubmission,
 	patchAssignmentById
   } = require('../models/assignments');
-const { getCourseDetailsById, getStudentsInCourse, } = require('../models/courses');
+const { getCourseById, getStudentsInCourse, } = require('../models/courses');
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -103,7 +103,6 @@ router.post('/', requireAuthentication, async (req, res) => {
 	if (validateAgainstSchema(req.body, AssignmentSchema)) {
 		console.log("validated")
 	  try {
-		const course = await getCourseDetailsById(parseInt(req.body.courseId));  
 		if(req.role == 2 || ( req.role == 1 && req.user == course.instructorId)){
 			const id = await insertNewAssignment(req.body);
 			res.status(201).send({
@@ -159,7 +158,6 @@ router.patch('/:id', requireAuthentication, async (req, res) => {
 	try{
 	const assignment = await getAssignmentById(parseInt(req.params.id))
 	console.log(assignment);
-	const course = await getCourseDetailsById(assignment.courseId);
 	  //console.log(course);
 	  
 	  if(req.role == 2 || (req.role == 1 && req.user == course.instructorId)){
@@ -207,7 +205,6 @@ router.patch('/:id', requireAuthentication, async (req, res) => {
 router.delete('/:id', requireAuthentication, async (req, res, next) => {
 	try {
 	  const assignment = await getAssignmentById(parseInt(req.params.id))
-	  const course = await getCourseDetailsById(assignment.courseId);
 	  if( req.role == 2 || (req.role == 1 && req.user == course.instructorId)){
 		  const deleteSuccessful = await deleteAssignmentById(parseInt(req.params.id));
 		  if (deleteSuccessful) {
@@ -244,7 +241,6 @@ router.get('/:id/submissions', requireAuthentication, async (req, res, next) => 
      * send response.
      */
 	const assignment = await getAssignmentById(parseInt(req.params.id))
-	const course = await getCourseDetailsById(assignment.courseId);
 	if( req.role == 2 || (req.role == 1 && req.user == course.instructorId)){
 		var coursePage = {};
 		if(req.query.studentid){
