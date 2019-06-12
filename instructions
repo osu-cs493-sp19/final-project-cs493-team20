@@ -28,8 +28,7 @@ commands:
 		[X] post /			
 			make sure to change email every time
 			curl -X POST -d "{\"role\":2, \"name\":\"user_name\", \"email\":\"user8@address\", \"password\":\"hunter2\"}" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/users		
-			ERROR: 
-				password doesn't get hashed so we can't use it
+			curl --header "Content-Type: application/json" -d "{\"email\": \"user8@address\", \"password\":\"hunter2\"}" http://localhost:8000/users/login
 			
 		[X] get /id
 			curl GET -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/users/1
@@ -58,7 +57,7 @@ commands:
 
 		[-] post /id/submissions
 			curl --request POST --data "{\"file\":\"file_name\", \"timestamp\":\"time\", \"courseid\":1, \"studentid\":2, \"assignmentid\":2}" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/assignments/2/submissions
-			sqlMessage: "Table 'businesses.students' doesn't exist",
+			{"error":"Request body is not a valid submission object."}
 
 			
 			
@@ -72,7 +71,7 @@ commands:
 			{"id":2,"links":{"course":"/courses/2"}}
 			
 		[X] get /id
-			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/courses/2
+			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/courses/1
 			{"id":2,"title":"course_title","subject":"subject","number":"number","instructorid":1,"term":"term"}
 			
 		[X] delete /id
@@ -80,21 +79,21 @@ commands:
 			results: blank
 
 		[X] post /id/students
-			curl -X POST -d "{\"courseid\":4, \"studentid\":1}" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/courses/4/students/2
-			{"links":{"course":"/courses/4"}}			
+			curl -X POST -d "{\"courseid\":1, \"studentid\":1}" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/courses/1/students/2
+			{"links":{"course":"/courses/1"}}			
 			
 		[X] get /id/students
-			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/courses/4/students
-			results [{"id":1,"courseid":4,"studentid":1}]
+			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/courses/1/students
+			results [{"id":1,"courseid":1,"studentid":1}]
 			
 									
 		[X] get /id/rosters
-			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/courses/4/rosters
+			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/courses/1/rosters
 			[{"id":1,"courseid":4,"studentid":1}]
 			
 		[X] get /id/assignments
-			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/courses/4/assignments
-			[{"id":2,"title":"user_name","duedate":"user_address","courseid":4,"points":10}]
+			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/courses/1/assignments
+			[{"id":2,"title":"user_name","duedate":"user_address","courseid":1,"points":10}]
 			
 							
 
