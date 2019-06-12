@@ -158,11 +158,11 @@ router.get('/:id', async (req, res) => {
 router.patch('/:id', requireAuthentication, async (req, res) => {
 	try{
 	const assignment = await getAssignmentById(parseInt(req.params.id))
-		console.log(assignment);
-	  //const course = await getCourseDetailsById(assignment.courseId);
+	console.log(assignment);
+	const course = await getCourseDetailsById(assignment.courseId);
 	  //console.log(course);
 	  
-	  if(req.role == 2 || (req.role == 1 /*&& req.user == course.instructorId*/)){
+	  if(req.role == 2 || (req.role == 1 && req.user == course.instructorId)){
 		  console.log(req.body);
 		  let obj = req.body;
 		  let updateObj = {};
