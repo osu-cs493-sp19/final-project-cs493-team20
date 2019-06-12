@@ -118,6 +118,7 @@ DROP TABLE IF EXISTS `submissions`;
 CREATE TABLE `submissions` (
   `id` mediumint(9) NOT NULL AUTO_INCREMENT,
   `file` varchar(255) NOT NULL,
+  `url` varchar(255) NOT NULL,
   `timestamp` varchar(255) NOT NULL,
   `courseid` mediumint(9) NOT NULL,
   `studentid` mediumint(9) NOT NULL,
@@ -139,7 +140,7 @@ CREATE TABLE `submissions` (
 LOCK TABLES `submissions` WRITE;
 /*!40000 ALTER TABLE `submissions` DISABLE KEYS */;
 INSERT INTO `submissions` VALUES
-  (1,'notarealfile','2019-06-14T17:00:00-07:00',1,1,1);
+  (1,'notarealfile','dummyurl','2019-06-14T17:00:00-07:00',1,1,1);
 /*!40000 ALTER TABLE `submissions` ENABLE KEYS */;
 UNLOCK TABLES;
 

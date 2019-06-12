@@ -33,6 +33,7 @@ exports.SubmissionSchema = SubmissionSchema;
 
 const SubmissionSchemaFinal = {
   file: { required: true },
+  url: { required: true },
   timestamp: { required: true },
   courseid: { required: true },
   studentid: { required: true },
