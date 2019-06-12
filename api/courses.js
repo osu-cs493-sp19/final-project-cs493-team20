@@ -226,9 +226,11 @@ router.get('/:id/rosters', requireAuthentication, async (req, res, next) => {
 		if(req.role == 2 || (req.role == 1 && req.user == courseInfo.instructorId)){
 			console.log("getting students")
 			const course = await getStudentsInCourseCSV(parseInt(req.params.id));
-			console.log(course)
 			if (course) {
-			  res.status(200).send(course);
+				res.setHeader('Content-Disposition', 'attachment; filename=\"' + 'download-' + Date.now() + '.csv\"');
+				res.set('Content-Type', 'text/csv');
+				res.status(200).send(course)
+			  
 			} else {
 			  next();
 			}

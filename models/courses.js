@@ -1,6 +1,6 @@
 const mysqlPool = require('../lib/mysqlPool');
 const { extractValidFields } = require('../lib/validation');
-
+const JSONToCSV = require("json2csv").parse;
 
 /*
  * Schema describing required/optional fields of a course object.
@@ -286,7 +286,7 @@ exports.replaceStudentInCourse = replaceStudentInCourse;
 function getStudentsInCourse(id){
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'SELECT * FROM enrollments WHERE courseid = ?',
+      'SELECT studentid FROM enrollments WHERE courseid = ?',
       [ id ],
       (err, results) => {
         if (err) {
@@ -303,14 +303,15 @@ exports.getStudentsInCourse = getStudentsInCourse;
 function getStudentsInCourseCSV(id){
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'SELECT * FROM enrollments WHERE courseid = ?',
+      'SELECT users.id, users.name, users.email FROM enrollments JOIN users ON enrollments.studentid = users.id WHERE courseid = ?',
       [ id ],
       (err, results) => {
         if (err) {
           reject(err);
         } else {
           //CONVERT TO CSV HERE
-          resolve(results);
+		  var csv = JSONToCSV(results, {fields: [ "id", "name", "email"]})
+          resolve(csv);
         }
       }
     );
