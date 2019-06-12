@@ -22,7 +22,7 @@ exports.AssignmentSchema = AssignmentSchema;
   `assignmentid` mediumint(9) NOT NULL,
  */
 const SubmissionSchema = {
-  file: { required: true },
+  //file: { required: true },
   timestamp: { required: true },
   courseid: { required: true },
   studentid: { required: true },
@@ -31,6 +31,14 @@ const SubmissionSchema = {
 };
 exports.SubmissionSchema = SubmissionSchema;
 
+const SubmissionSchemaFinal = {
+  file: { required: true },
+  timestamp: { required: true },
+  courseid: { required: true },
+  studentid: { required: true },
+  assignmentid: { required: true },
+  //fill in the rest
+};
 
 /*
  * Executes a MySQL query to fetch the total number of Assignments.  Returns
@@ -227,7 +235,7 @@ function getAssignmentsByOwnerId(id) {
 }
 exports.getAssignmentsByOwnerId = getAssignmentsByOwnerId;
 
-function getSubmissionsPage(page) {
+function getSubmissionsPage(page, id) {
   return new Promise(async (resolve, reject) => {
     /*
      * Compute last page number and make sure page is within allowed bounds.
@@ -241,8 +249,8 @@ function getSubmissionsPage(page) {
      const offset = (page - 1) * pageSize;
 
     mysqlPool.query(
-      'SELECT * FROM submissions ORDER BY id LIMIT ?,?',
-      [ offset, pageSize ],
+      'SELECT * FROM submissions WHERE assignmentid = ? ORDER BY id LIMIT ?,?',
+      [ id, offset, pageSize ],
       (err, results) => {
         if (err) {
           reject(err);
@@ -261,9 +269,44 @@ function getSubmissionsPage(page) {
 }
 exports.getSubmissionsPage = getSubmissionsPage;
 
+function getSubmissionsPageByStudentId(page, id, studentid) {
+  return new Promise(async (resolve, reject) => {
+    /*
+     * Compute last page number and make sure page is within allowed bounds.
+     * Compute offset into collection.
+     */
+     const count = await getAssignmentsCount();
+     const pageSize = 10;
+     const lastPage = Math.ceil(count / pageSize);
+     page = page > lastPage ? lastPage : page;
+     page = page < 1 ? 1 : page;
+     const offset = (page - 1) * pageSize;
+
+    mysqlPool.query(
+      'SELECT * FROM submissions WHERE assignmentid = ? AND studentid = ? ORDER BY id LIMIT ?,?',
+      [ id, studentid, offset, pageSize ],
+      (err, results) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({
+            Assignments: results,
+            page: page,
+            totalPages: lastPage,
+            pageSize: pageSize,
+            count: count
+          });
+        }
+      }
+    );
+  });
+}
+exports.getSubmissionsPage = getSubmissionsPage;
+
+
 function insertNewSubmission(Submission){
   return new Promise((resolve, reject) => {
-    Assignment = extractValidFields(Submission, SubmissionSchema);
+    Assignment = extractValidFields(Submission, SubmissionSchemaFinal);
     Submission.id = null;
     mysqlPool.query(
       'INSERT INTO submissions SET ?',
@@ -279,3 +322,20 @@ function insertNewSubmission(Submission){
   });
 }
 exports.insertNewSubmission = insertNewSubmission;
+
+function patchAssignmentById(id, fields){
+	return new Promise((resolve, reject) => {
+    mysqlPool.query(
+      'UPDATE assignments SET ? WHERE id = ?',
+      [ fields, id ],
+      (err, result) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(result.insertId);
+        }
+      }
+    );
+  });
+}
+exports.patchAssignmentById = patchAssignmentById;

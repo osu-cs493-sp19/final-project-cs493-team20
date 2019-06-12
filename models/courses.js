@@ -281,7 +281,7 @@ exports.replaceStudentInCourse = replaceStudentInCourse;
 function getStudentsInCourse(id){
   return new Promise((resolve, reject) => {
     mysqlPool.query(
-      'SELECT * FROM students WHERE courseid = ?',
+      'SELECT * FROM enrollments WHERE courseid = ?',
       [ id ],
       (err, results) => {
         if (err) {
