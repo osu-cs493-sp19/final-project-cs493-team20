@@ -59,6 +59,7 @@ router.post('/:id/submissions', requireAuthentication, upload.single('file'), as
 			const submission = {
 			  //contentType: req.file.mimetype,
 			  file: req.file.filename,
+			  url: `/assignments/media/submissions/${req.file.filename}`,
 			  //path: req.file.path,
 			  timestamp: Date.now(),
 			  courseid: req.body.courseid,
