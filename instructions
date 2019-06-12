@@ -14,7 +14,7 @@ X means 'working'
 
 commands:
 	users
-		[-] post /login			
+		[X] post /login			
 			ERRORS:
 				you get /users/login: "invalid authentication token" if you put in wrong credentials
 
@@ -25,27 +25,15 @@ commands:
 			save both as bash variable
 				ADMIN_TOKEN=XXXXXXX
 				TOKEN=XXXXXXX
-		[-] post /			
+		[X] post /			
 			make sure to change email every time
-			curl -X POST -d "{\"role\":2, \"name\":\"user_name\", \"email\":\"user8@address\", \"password\":\"hunter2\"}" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/users		
+			curl -X POST -d "{\"role\":2, \"name\":\"user_name\", \"email\":\"user8@address\", \"password\":\"hunter2\"}" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/users		
 			ERROR: 
 				password doesn't get hashed so we can't use it
 			
-		[ ] get /id
-			curl GET -v -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/users/1
-				{"error":"Unauthorized to access the specified resource"}
-			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/users/1
-				{"error":"Unauthorized to access the specified resource"}
-			only allows specific user to access
-				curl --header "Content-Type: application/json" -d "{\"email\": \"user@email\", \"password\":\"hunter2\"}" http://localhost:8000/users/login
-				{"error":"Invalid credentials"}
-				validateUser fails
-				password wasn't hashed on creation! (default users are hard-coded!)
-				How to hash password?
-			curl --header "Content-Type: application/json" -d "{\"email\": \"nick@block15.com\", \"password\":\"hunter2\"}" http://localhost:8000/users/login
-			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/users/1
-				should work but still can't access
-			
+		[X] get /id
+			curl GET -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/users/1
+
 	assignments
 		[X] post / 
 			curl --request POST --data "{\"title\":\"user_name\", \"duedate\":\"user_address\", \"courseid\":1, \"points\":10}" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/assignments
@@ -64,13 +52,13 @@ commands:
 							
 		[-] get /id/submissions
 			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/assignments/2/submissions			
-			TypeError: Cannot read property 'courseId' of undefined
+			{"error":"Error fetching submission list.  Please try again later."}
 			
 			was working before with results: {"Assignments":[{"id":1,"file":"notarealfile","timestamp":"2019-06-14T17:00:00-07:00","courseid":1,"studentid":1,"assignmentid":1}],"page":1,"totalPages":1,"pageSize":10,"count":2,"links":{}}			
 
 		[-] post /id/submissions
 			curl --request POST --data "{\"file\":\"file_name\", \"timestamp\":\"time\", \"courseid\":1, \"studentid\":2, \"assignmentid\":2}" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/assignments/2/submissions
-			sqlMessage: "Table 'businesses.students' doesn't exist",
+			{"error":"Request body is not a valid submission object."}
 
 			
 			
@@ -79,36 +67,33 @@ commands:
 			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/courses			
 			{"Courses":[{"id":1,"title":"Cloud Application Development","subject":"CS","number":"493","instructorid":2,"term":"sp19"}],"page":1,"totalPages":1,"pageSize":10,"count":1,"links":{}}
 
-			(node:17) UnhandledPromiseRejectionWarning: Error: ER_NO_SUCH_TABLE: Table 'businesses.Courses' doesn't exist		
-			hangs
-		[-] post /
+		[ ] post /
 			curl --request POST --data "{\"title\":\"course_title\", \"subject\":\"subject\", \"number\":\"number\", \"instructorid\":2, \"term\":\"term\"}" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/courses			
-			TypeError: insertNewCourse is not a function
+			{"error":"Error inserting course into DB.  Please try again later."}
 			
-		[-] get /id
+		[ ] get /id
 			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/courses/0		
 			{"error":"Requested resource /courses/0 does not exist"}
 			
 		[ ] delete /id
 			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/courses/1			
-			TypeError: deleteCourseById is not a function
+			{"error":"Requested resource /courses/1 does not exist"}
 			
 		[ ] get /id/students
 			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/courses/1/students
-			ReferenceError: getcourseById is not defined
+			{"error":"Unable to fetch course.  Please try again later."}
 			
 		[ ] post /id/students
-			curl POST -v -d "{\"name\":\"user_name\", \"address\":\"user_address\"}" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/courses/1/students
-			{"error":"Unable to update specified enrollment.  Please try again later."}
-			getcourseById is not defined
+			curl POST -d "{\"name\":\"user_name\", \"address\":\"user_address\"}" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/courses/1/students
+			{"error":"Request body is not a valid enrollment object"}
 									
 		[ ] get /id/rosters
 			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/courses/0/rosters			
-			ReferenceError: getAssignmentsByCourseID is not defined
+			{"error":"Requested resource /courses/0/rosters does not exist"}
 			
 		[ ] get /id/assignments
 			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/courses/1/assignments			
-			ReferenceError: getAssignmentsByCourseID is not defined
+			{"error":"Unable to fetch list of assignments.  Please try again later."}
 							
 
 for reference, list of all the end points:
