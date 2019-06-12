@@ -3,10 +3,16 @@ const { generateAuthToken, requireAuthentication } = require('../lib/auth');
 const { validateAgainstSchema } = require('../lib/validation');
 const {
     courseSchema,
+    studentSchema,
     getCoursesPage,
     insertNewCourse,
     getCourseDetailsById,
+    getCourseById,
     replaceCourseById,
+    getStudentsInCourse,
+    replaceStudentInCourse,    
+    getStudentsInCourseCSV,
+    getAssignmentsByCourseID,
     deleteCourseById,
     getCoursesByOwnerdId
   } = require('../models/courses');
@@ -84,8 +90,10 @@ router.post('/', requireAuthentication, async (req, res) => {
  * Returns summary data about the Course, excluding the list of students enrolled in the course and the list of Assignments for the course.
  */
 router.get('/:id', async (req, res, next) => {
+	console.log(req.params.id)
     try {
-        const course = await getCourseDetailsById(parseInt(req.params.id));
+    	console.log("inside try")
+        const course = await getCourseById(parseInt(req.params.id));
         if (course) {
           res.status(200).send(course);
         } else {
@@ -136,7 +144,7 @@ router.delete('/:id', requireAuthentication, async (req, res, next) => {
  */
 router.get('/:id/students', requireAuthentication, async (req, res, next) => {
     try {
-		const courseInfo = await getcourseById(req.params.id);
+		const courseInfo = await getCourseById(req.params.id);
         const course = await getStudentsInCourse(parseInt(req.params.id));
 		if(req.role == 2 || (req.role == 1 && req.user == courseInfo.instructorId)){
 			if (course) {
@@ -164,15 +172,18 @@ router.get('/:id/students', requireAuthentication, async (req, res, next) => {
  * Enrolls and/or unenrolls students from a Course.  Only an authenticated User with 'admin' role or an authenticated 'instructor' User whose 
  * ID matches the `instructorId` of the Course can update the students enrolled in the Course.
  */
-router.post('/:id/students', requireAuthentication, async (req, res) => {
-	if (validateAgainstSchema(req.body, courseSchema)) {
+router.post('/:id/students/:flag', requireAuthentication, async (req, res) => {
+	if (validateAgainstSchema(req.body, studentSchema)) {
 	  try {
 		const id = parseInt(req.params.id);
-		const courseInfo = await getcourseById(req.params.id);
+		const courseInfo = await getCourseById(req.params.id);
 		if(req.role == 2 || (req.role == 1 && req.user == courseInfo.instructorId)){
 			//flag is set for 0 when unenrolling student, 1 when updating student, 2 when creating new student
+			console.log("posting student")
 			const flag = parseInt(req.params.flag);
 			const updateSuccessful = await replaceStudentInCourse(id, req.body, flag);
+			console.log("updateSuccess:")
+			console.log(updateSuccessful)
 			if (updateSuccessful) {
 			  res.status(200).send({
 				links: {
@@ -208,11 +219,14 @@ router.post('/:id/students', requireAuthentication, async (req, res) => {
  *  Returns a CSV file containing information about all of the students currently enrolled in the Course, including names, IDs, 
  *  and email addresses.  Only an authenticated User with 'admin' role or an authenticated 'instructor' User whose ID matches the `instructorId` of the Course can fetch the course roster.
  */
-router.get('/:id/roster', requireAuthentication, async (req, res, next) => {
+router.get('/:id/rosters', requireAuthentication, async (req, res, next) => {
+	console.log("in roster")
     try {
-		const courseInfo = await getcourseById(req.params.id);
+		const courseInfo = await getCourseById(req.params.id);
 		if(req.role == 2 || (req.role == 1 && req.user == courseInfo.instructorId)){
+			console.log("getting students")
 			const course = await getStudentsInCourseCSV(parseInt(req.params.id));
+			console.log(course)
 			if (course) {
 			  res.status(200).send(course);
 			} else {

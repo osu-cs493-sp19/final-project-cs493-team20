@@ -28,8 +28,7 @@ commands:
 		[X] post /			
 			make sure to change email every time
 			curl -X POST -d "{\"role\":2, \"name\":\"user_name\", \"email\":\"user8@address\", \"password\":\"hunter2\"}" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/users		
-			ERROR: 
-				password doesn't get hashed so we can't use it
+			curl --header "Content-Type: application/json" -d "{\"email\": \"user8@address\", \"password\":\"hunter2\"}" http://localhost:8000/users/login
 			
 		[X] get /id
 			curl GET -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/users/1
@@ -50,13 +49,14 @@ commands:
 				curl -X DELETE -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/assignments/2				
 				no response, but it sends a 204
 							
-		[-] get /id/submissions
+		[ ] get /id/submissions
 			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/assignments/2/submissions			
 			{"error":"Error fetching submission list.  Please try again later."}
+			TypeError: Cannot read property 'courseId' of undefined			
 			
 			was working before with results: {"Assignments":[{"id":1,"file":"notarealfile","timestamp":"2019-06-14T17:00:00-07:00","courseid":1,"studentid":1,"assignmentid":1}],"page":1,"totalPages":1,"pageSize":10,"count":2,"links":{}}			
 
-		[-] post /id/submissions
+		[ ] post /id/submissions
 			curl --request POST --data "{\"file\":\"file_name\", \"timestamp\":\"time\", \"courseid\":1, \"studentid\":2, \"assignmentid\":2}" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/assignments/2/submissions
 			{"error":"Request body is not a valid submission object."}
 
@@ -67,33 +67,35 @@ commands:
 			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/courses			
 			{"Courses":[{"id":1,"title":"Cloud Application Development","subject":"CS","number":"493","instructorid":2,"term":"sp19"}],"page":1,"totalPages":1,"pageSize":10,"count":1,"links":{}}
 
-		[ ] post /
+		[X] post /
 			curl --request POST --data "{\"title\":\"course_title\", \"subject\":\"subject\", \"number\":\"number\", \"instructorid\":2, \"term\":\"term\"}" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/courses			
-			{"error":"Error inserting course into DB.  Please try again later."}
+			{"id":2,"links":{"course":"/courses/2"}}
 			
-		[ ] get /id
-			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/courses/0		
-			{"error":"Requested resource /courses/0 does not exist"}
+		[X] get /id
+			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/courses/1
+			{"id":2,"title":"course_title","subject":"subject","number":"number","instructorid":1,"term":"term"}
 			
-		[ ] delete /id
-			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/courses/1			
-			{"error":"Requested resource /courses/1 does not exist"}
+		[X] delete /id
+			curl -X DELETE -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/courses/1			
+			results: blank
+
+		[X] post /id/students
+			curl -X POST -d "{\"courseid\":1, \"studentid\":1}" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/courses/1/students/2
+			{"links":{"course":"/courses/1"}}			
 			
-		[ ] get /id/students
-			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/courses/1/students
-			{"error":"Unable to fetch course.  Please try again later."}
+		[X] get /id/students
+			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/courses/1/students
+			results [{"id":1,"courseid":1,"studentid":1}]
 			
-		[ ] post /id/students
-			curl POST -d "{\"name\":\"user_name\", \"address\":\"user_address\"}" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/courses/1/students
-			{"error":"Request body is not a valid enrollment object"}
 									
-		[ ] get /id/rosters
-			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/courses/0/rosters			
-			{"error":"Requested resource /courses/0/rosters does not exist"}
+		[X] get /id/rosters
+			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/courses/1/rosters
+			[{"id":1,"courseid":4,"studentid":1}]
 			
-		[ ] get /id/assignments
-			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/courses/1/assignments			
-			{"error":"Unable to fetch list of assignments.  Please try again later."}
+		[X] get /id/assignments
+			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/courses/1/assignments
+			[{"id":2,"title":"user_name","duedate":"user_address","courseid":1,"points":10}]
+
 							
 
 for reference, list of all the end points:
