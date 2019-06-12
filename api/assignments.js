@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const express = require('express');
 const multer = require('multer');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -255,6 +256,6 @@ router.get('/:id/submissions', requireAuthentication, async (req, res, next) => 
 /*
 Provide download
 */
-app.use('/media/submissions', express.static(`${__dirname}/uploads`));
+router.use('/media/submissions', express.static(`${__dirname}/uploads`));
 
 module.exports = router;
