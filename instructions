@@ -51,7 +51,7 @@ commands:
 							
 		[-] get /id/submissions
 			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/assignments/2/submissions			
-			TypeError: Cannot read property 'courseId' of undefined
+			{"error":"Error fetching submission list.  Please try again later."}
 			
 			was working before with results: {"Assignments":[{"id":1,"file":"notarealfile","timestamp":"2019-06-14T17:00:00-07:00","courseid":1,"studentid":1,"assignmentid":1}],"page":1,"totalPages":1,"pageSize":10,"count":2,"links":{}}			
 
@@ -94,7 +94,7 @@ commands:
 		[X] get /id/assignments
 			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" http://localhost:8000/courses/1/assignments
 			[{"id":2,"title":"user_name","duedate":"user_address","courseid":1,"points":10}]
-			
+
 							
 
 for reference, list of all the end points:

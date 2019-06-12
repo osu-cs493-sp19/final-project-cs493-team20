@@ -26,13 +26,14 @@ const SubmissionSchema = {
   timestamp: { required: true },
   courseid: { required: true },
   studentid: { required: true },
-  assignmentid: { required: true },
+  //assignmentid: { required: true },
   //fill in the rest
 };
 exports.SubmissionSchema = SubmissionSchema;
 
 const SubmissionSchemaFinal = {
   file: { required: true },
+  url: { required: true },
   timestamp: { required: true },
   courseid: { required: true },
   studentid: { required: true },
@@ -301,7 +302,7 @@ function getSubmissionsPageByStudentId(page, id, studentid) {
     );
   });
 }
-exports.getSubmissionsPage = getSubmissionsPage;
+exports.getSubmissionsPageByStudentId = getSubmissionsPageByStudentId;
 
 
 function insertNewSubmission(Submission){
