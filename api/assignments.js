@@ -39,7 +39,8 @@ const upload = multer({
 const imageTypes = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
-  'application': 'pdf'
+  'application/pdf': 'pdf',
+  'text/plain': 'txt'
 };
 
 /*
@@ -68,7 +69,7 @@ router.post('/:id/submissions', requireAuthentication, upload.single('file'), as
 			res.status(201).send({
 			  id: id,
 			  links: {
-				assignment: `/media/submissions/${submission.file}`
+				assignment: `/assignments/media/submissions/${submission.file}`
 			  }
 			});
 		} else {
@@ -156,12 +157,15 @@ router.get('/:id', async (req, res) => {
 router.patch('/:id', requireAuthentication, async (req, res) => {
 	try{
 	const assignment = await getAssignmentById(parseInt(req.params.id))
-	  const course = await getCourseDetailsById(assignment.courseId);
-	  if(req.role == 2 || (req.role == 1 && req.user == course.instructorId)){
+		console.log(assignment);
+	  //const course = await getCourseDetailsById(assignment.courseId);
+	  //console.log(course);
+	  
+	  if(req.role == 2 || (req.role == 1 /*&& req.user == course.instructorId*/)){
 		  console.log(req.body);
 		  let obj = req.body;
 		  let updateObj = {};
-		  Object.req.body.forEach((field) => {
+		  Object.keys(req.body).forEach((field) => {
 			updateObj[field] = obj[field];
 		  });
 		  /*
@@ -172,6 +176,12 @@ router.patch('/:id', requireAuthentication, async (req, res) => {
 		  */
 		  //const updateObj = req.body;
 		  const patch = await patchAssignmentById(req.params.id, updateObj);
+		  if(patch){
+			  res.status(200).send("Patch Success");
+		  } else{
+			  res.status(200).send("Patch Failed");
+		  }
+		  
 	  } else {
 		  res.status(403).send({
 			error: "User is not authorized to patch this assignment"  
