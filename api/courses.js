@@ -5,6 +5,9 @@ const {
     courseSchema,
     studentSchema,
     getCoursesPage,
+	getCoursesPageBySubject,
+	getCoursesPageByNumber,
+	getCoursesPageByTerm,
     insertNewCourse,
     getCourseDetailsById,
     getCourseById,
@@ -29,7 +32,17 @@ router.get('/', async (req, res, next) => {
          * Fetch page info, generate HATEOAS links for surrounding pages and then
          * send response.
          */
-        const coursePage = await getCoursesPage(parseInt(req.query.page) || 1);
+		 var coursePage
+		 if(req.query.subject){
+			 coursePage = await getCoursesPageBySubject(parseInt(req.query.page) || 1, req.query.subject);
+		 } else if(req.query.number){
+			 coursePage = await getCoursesPageByNumber(parseInt(req.query.page) || 1, parseInt(req.query.number) || 1);
+		 } else if(req.query.term){
+			 coursePage = await getCoursesPageByTerm(parseInt(req.query.page) || 1, req.query.term);
+		 }else {
+			 coursePage = await getCoursesPage(parseInt(req.query.page) || 1);
+		 }
+        
         coursePage.links = {};
         if (coursePage.page < coursePage.totalPages) {
           coursePage.links.nextPage = `/courses?page=${coursePage.page + 1}`;
