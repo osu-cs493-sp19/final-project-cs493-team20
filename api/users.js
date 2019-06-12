@@ -12,9 +12,8 @@ const { UserSchema, insertNewUser, getUserById, validateUser, getUserByEmail } =
  * Create and store a new application User with specified data and adds it to the application's database.  Only an authenticated User with 'admin' role can create users with the 'admin' or 'instructor' roles.
  */
 router.post('/', requireAuthentication, async (req, res) => {
-	console.log(req.body)
-    if (validateAgainstSchema(req.body, UserSchema)) {
-		if((req.body.role == 1 || req.body.role == 2) && req.role != 0){
+    if ((req.body.role || req.body.role == 0) && req.body.name && req.body.email && req.body.password) {
+		if((req.body.role == 1 || req.body.role == 2) && req.role != 2){
 			res.status(403).send({
 				error: "The request was not made by an authenticated User satisfying the authorization criteria described above."
 			});
@@ -49,7 +48,7 @@ router.post('/login', async (req, res) => {
           const authenticated = await validateUser(req.body.email, req.body.password);
           if (authenticated) {
 			const user = await getUserByEmail(req.body.email);
-            const token = await generateAuthToken(req.body.email, user.role);
+            const token = await generateAuthToken(user.id, user.role);
             res.status(200).send({
               token: token
             });
@@ -78,7 +77,7 @@ router.post('/login', async (req, res) => {
  */
 router.get('/:id', requireAuthentication, async (req, res) => {
 	
-    if (req.role == 0 || req.params.id == req.user) {
+    if (req.role == 2 || req.params.id == req.user) {
         try {
           const user = await getUserById(req.params.id);
           if (user) {

@@ -68,7 +68,7 @@ router.post('/', requireAuthentication, async (req, res) => {
 		console.log("validated")
 	  try {
 		const course = await getCourseDetailsById(parseInt(req.body.courseId));  
-		if(req.role == 0 || ( req.role == 1 && req.user == course.instructorId)){
+		if(req.role == 2 || ( req.role == 1 && req.user == course.instructorId)){
 			const id = await insertNewAssignment(req.body);
 			res.status(201).send({
 			  id: id,
@@ -147,7 +147,7 @@ router.delete('/:id', requireAuthentication, async (req, res, next) => {
 	try {
 	  const assignment = await getAssignmentById(parseInt(req.params.id))
 	  const course = await getCourseDetailsById(assignment.courseId);
-	  if( req.role == 0 || (req.role == 1 && req.user == course.instructorId)){
+	  if( req.role == 2 || (req.role == 1 && req.user == course.instructorId)){
 		  const deleteSuccessful = await deleteAssignmentById(parseInt(req.params.id));
 		  if (deleteSuccessful) {
 			res.status(204).end();
@@ -182,7 +182,7 @@ router.get('/:id/submissions', requireAuthentication, async (req, res, next) => 
      */
 	const assignment = await getAssignmentById(parseInt(req.params.id))
 	const course = await getCourseDetailsById(assignment.courseId);
-	if( req.role == 0 || (req.role == 1 && req.user == course.instructorId)){
+	if( req.role == 2 || (req.role == 1 && req.user == course.instructorId)){
 		const coursePage = await getSubmissionsPage(parseInt(req.query.page) || 1);
 		coursePage.links = {};
 		if (coursePage.page < coursePage.totalPages) {

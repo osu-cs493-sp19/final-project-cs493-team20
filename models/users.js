@@ -76,7 +76,7 @@ exports.getUsersPage = getUsersPage;
  * a Promise that resolves to the ID of the newly-created User entry.
  */
 function insertNewUser(User) {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     User = extractValidFields(User, UserSchema);
 	const passwordHash = await bcrypt.hash(User.password, 8);
 	User.password = passwordHash;
@@ -118,7 +118,7 @@ function getUserById(id) {
     );
   });
 }
-
+exports.getUserById = getUserById
 /*
  * Executes a MySQL query to fetch detailed information about a single
  * specified User based on its ID, including photo and review data for
@@ -235,14 +235,8 @@ exports.getAdmin = getAdmin;
 
 //validates user password matches the one they provided
 async function validateUser (email, password) {
-  console.log("validating:")
-  console.log(email)
-  console.log(password)
   const user = await getUserByEmail(email);
-  console.log(user.password)
   password_match = await bcrypt.compare(password, user.password)
-  console.log(user)
-  console.log(password_match)
   const authenticated = user && password_match;
   return authenticated;
 }
