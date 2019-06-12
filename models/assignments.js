@@ -332,7 +332,12 @@ function patchAssignmentById(id, fields){
         if (err) {
           reject(err);
         } else {
-          resolve(result.insertId);
+			//console.log(result);
+          if(result.affectedRows > 0){
+			  resolve(true);
+		  } else {
+			  resolve(false);
+		  }
         }
       }
     );
