@@ -26,7 +26,7 @@ const SubmissionSchema = {
   timestamp: { required: true },
   courseid: { required: true },
   studentid: { required: true },
-  assignmentid: { required: true },
+  //assignmentid: { required: true },
   //fill in the rest
 };
 exports.SubmissionSchema = SubmissionSchema;
@@ -301,7 +301,7 @@ function getSubmissionsPageByStudentId(page, id, studentid) {
     );
   });
 }
-exports.getSubmissionsPage = getSubmissionsPage;
+exports.getSubmissionsPageByStudentId = getSubmissionsPageByStudentId;
 
 
 function insertNewSubmission(Submission){
