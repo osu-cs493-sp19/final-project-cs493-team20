@@ -5,6 +5,9 @@ const {
     courseSchema,
     studentSchema,
     getCoursesPage,
+	getCoursesPageBySubject,
+	getCoursesPageByNumber,
+	getCoursesPageByTerm,
     insertNewCourse,
     getCourseDetailsById,
     getCourseById,
@@ -29,7 +32,17 @@ router.get('/', async (req, res, next) => {
          * Fetch page info, generate HATEOAS links for surrounding pages and then
          * send response.
          */
-        const coursePage = await getCoursesPage(parseInt(req.query.page) || 1);
+		 var coursePage
+		 if(req.query.subject){
+			 coursePage = await getCoursesPageBySubject(parseInt(req.query.page) || 1, req.query.subject);
+		 } else if(req.query.number){
+			 coursePage = await getCoursesPageByNumber(parseInt(req.query.page) || 1, parseInt(req.query.number) || 1);
+		 } else if(req.query.term){
+			 coursePage = await getCoursesPageByTerm(parseInt(req.query.page) || 1, req.query.term);
+		 }else {
+			 coursePage = await getCoursesPage(parseInt(req.query.page) || 1);
+		 }
+        
         coursePage.links = {};
         if (coursePage.page < coursePage.totalPages) {
           coursePage.links.nextPage = `/courses?page=${coursePage.page + 1}`;
@@ -48,6 +61,42 @@ router.get('/', async (req, res, next) => {
       }
 });
 
+//We have not worked with a patch request before so I commented this out. I'm not sure if we should create this or not. Please refer to .yaml
+router.patch('/:id', requireAuthentication, async (req, res) => {
+	try{
+	//const assignment = await getAssignmentById(parseInt(req.params.id))
+	//console.log(assignment);
+	const course = await getCourseById(req.params.id);
+	  //console.log(course);
+	  
+	  if(req.role == 2 || (req.role == 1 && req.user == course.instructorId)){
+		  console.log(req.body);
+		  let obj = req.body;
+		  let updateObj = {};
+		  Object.keys(req.body).forEach((field) => {
+			updateObj[field] = obj[field];
+		  });
+		  
+		  const patch = await replaceCourseById(req.params.id, updateObj);
+		  if(patch){
+			  res.status(200).send("Patch Success");
+		  } else{
+			  res.status(200).send("Patch Failed");
+		  }
+		  
+	  } else {
+		  res.status(403).send({
+			error: "User is not authorized to patch this course"  
+		  })
+	  }
+	  
+	} catch (err) {
+		console.error(err);
+        res.status(500).send({
+          error: "Unable to patch course.  Please try again later."
+        });
+	}
+});
 
 /*
  * Create a new course.

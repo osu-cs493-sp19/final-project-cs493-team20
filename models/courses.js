@@ -91,6 +91,109 @@ function getCoursesPage(page) {
 }
 exports.getCoursesPage = getCoursesPage;
 
+function getCoursesPageBySubject(page, subject) {
+  return new Promise(async (resolve, reject) => {
+    /*
+     * Compute last page number and make sure page is within allowed bounds.
+     * Compute offset into collection.
+     */
+     const count = await getCoursesCount();
+     const pageSize = 10;
+     const lastPage = Math.ceil(count / pageSize);
+     page = page > lastPage ? lastPage : page;
+     page = page < 1 ? 1 : page;
+     const offset = (page - 1) * pageSize;
+
+    mysqlPool.query(
+      'SELECT * FROM courses WHERE subject = ? ORDER BY id LIMIT ?,?',
+      [ subject, offset, pageSize ],
+      (err, results) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({
+            Courses: results,
+            page: page,
+            totalPages: lastPage,
+            pageSize: pageSize,
+            count: count
+          });
+        }
+      }
+    );
+  });
+}
+exports.getCoursesPageBySubject = getCoursesPageBySubject;
+
+function getCoursesPageByNumber(page, number) {
+  return new Promise(async (resolve, reject) => {
+    /*
+     * Compute last page number and make sure page is within allowed bounds.
+     * Compute offset into collection.
+     */
+     const count = await getCoursesCount();
+     const pageSize = 10;
+     const lastPage = Math.ceil(count / pageSize);
+     page = page > lastPage ? lastPage : page;
+     page = page < 1 ? 1 : page;
+     const offset = (page - 1) * pageSize;
+
+    mysqlPool.query(
+      'SELECT * FROM courses WHERE number = ? ORDER BY id LIMIT ?,?',
+      [ number, offset, pageSize ],
+      (err, results) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({
+            Courses: results,
+            page: page,
+            totalPages: lastPage,
+            pageSize: pageSize,
+            count: count
+          });
+        }
+      }
+    );
+  });
+}
+exports.getCoursesPageByNumber = getCoursesPageByNumber;
+
+function getCoursesPageByTerm(page, term) {
+  return new Promise(async (resolve, reject) => {
+    /*
+     * Compute last page number and make sure page is within allowed bounds.
+     * Compute offset into collection.
+     */
+     const count = await getCoursesCount();
+     const pageSize = 10;
+     const lastPage = Math.ceil(count / pageSize);
+     page = page > lastPage ? lastPage : page;
+     page = page < 1 ? 1 : page;
+     const offset = (page - 1) * pageSize;
+
+    mysqlPool.query(
+      'SELECT * FROM courses WHERE term = ? ORDER BY id LIMIT ?,?',
+      [ term, offset, pageSize ],
+      (err, results) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({
+            Courses: results,
+            page: page,
+            totalPages: lastPage,
+            pageSize: pageSize,
+            count: count
+          });
+        }
+      }
+    );
+  });
+}
+exports.getCoursesPageByTerm = getCoursesPageByTerm;
+
+
 /*
  * Executes a MySQL query to insert a new course into the database.  Returns
  * a Promise that resolves to the ID of the newly-created course entry.
