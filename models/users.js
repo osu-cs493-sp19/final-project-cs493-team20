@@ -235,7 +235,9 @@ exports.getAdmin = getAdmin;
 
 //validates user password matches the one they provided
 async function validateUser (email, password) {
+	console.log(email);
   const user = await getUserByEmail(email);
+  console.log(user);
   password_match = await bcrypt.compare(password, user.password)
   const authenticated = user && password_match;
   return authenticated;
