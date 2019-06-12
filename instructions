@@ -49,13 +49,14 @@ commands:
 				curl -X DELETE -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/assignments/2				
 				no response, but it sends a 204
 							
-		[-] get /id/submissions
+		[ ] get /id/submissions
 			curl -X GET -d "" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/assignments/2/submissions			
 			{"error":"Error fetching submission list.  Please try again later."}
+			TypeError: Cannot read property 'courseId' of undefined			
 			
 			was working before with results: {"Assignments":[{"id":1,"file":"notarealfile","timestamp":"2019-06-14T17:00:00-07:00","courseid":1,"studentid":1,"assignmentid":1}],"page":1,"totalPages":1,"pageSize":10,"count":2,"links":{}}			
 
-		[-] post /id/submissions
+		[ ] post /id/submissions
 			curl --request POST --data "{\"file\":\"file_name\", \"timestamp\":\"time\", \"courseid\":1, \"studentid\":2, \"assignmentid\":2}" -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8000/assignments/2/submissions
 			{"error":"Request body is not a valid submission object."}
 
